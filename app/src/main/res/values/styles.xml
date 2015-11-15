@@ -16,4 +16,32 @@
         <item name="android:textColorSecondary">@color/whiteText</item>
     </style>
 
+    <style name="DialpadKeyButtonStyle">
+        <item name="android:soundEffectsEnabled">false</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">13</item>
+        <item name="android:textSize">36sp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:minHeight">64dp</item>
+        <item name="android:gravity">center_horizontal|center_vertical</item>
+        <item name="android:background">@drawable/button_correct_shape</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="AppCompat.Button.Flat.Common" parent="Base.TextAppearance.AppCompat.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center_horizontal</item>
+        <item name="android:background">@drawable/btn_flat_selector</item>
+        <item name="android:textColor">@color/btn_flat_selector</item>
+        <item name="android:textSize">28sp</item>
+        <item name="android:paddingTop">16dp</item>
+        <item name="android:paddingBottom">16dp</item>
+        <item name="android:layout_marginBottom">@dimen/btn_flat_padding</item>
+        <item name="android:layout_marginLeft">@dimen/btn_flat_padding</item>
+        <item name="android:layout_marginRight">@dimen/btn_flat_padding</item>
+    </style>
+
 </resources>
