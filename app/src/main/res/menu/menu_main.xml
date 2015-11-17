@@ -3,9 +3,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".MainActivity">
     <item
+        android:id="@+id/action_search"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="search"
+        app:actionViewClass="android.support.v7.widget.SearchView"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/action_add"
-        android:orderInCategory="100"
         android:icon="@android:drawable/ic_menu_add"
-        android:title="item"
+        android:title="about"
         app:showAsAction="never" />
 </menu>

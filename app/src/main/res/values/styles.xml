@@ -12,6 +12,7 @@
     </style>
 
     <style name="AppThemeToolbar" parent="AppTheme">
+        <item name="android:background">?attr/colorPrimary</item>
         <item name="android:textColorPrimary">@color/whiteText</item>
         <item name="android:textColorSecondary">@color/whiteText</item>
     </style>
