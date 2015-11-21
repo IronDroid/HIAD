@@ -6,12 +6,10 @@
         android:id="@+id/action_search"
         android:icon="@android:drawable/ic_menu_search"
         android:title="search"
-        app:actionViewClass="android.support.v7.widget.SearchView"
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/action_add"
-        android:icon="@android:drawable/ic_menu_add"
+        android:id="@+id/action_about"
         android:title="about"
         app:showAsAction="never" />
 </menu>

@@ -20,12 +20,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView numberHimno;
     private SlidingUpPanelLayout upPanelLayout;
     private Toolbar toolbarPanel;
-
-    final static float STEP = 200;
-    float mRatio = 1.0f;
-    int mBaseDist;
-    float mBaseRatio;
-    float fontsize = 13;
+    private float textSize;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +29,27 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         numberHimno = (TextView) findViewById(R.id.number_himno);
         textHimno = (TextView) findViewById(R.id.text_himno);
+        textSize = textHimno.getTextSize();
         toolbarPanel = (Toolbar) findViewById(R.id.toolbar_panel);
+        toolbarPanel.inflateMenu(R.menu.menu_himno);
+        toolbarPanel.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.action_plus:
+                        Toast.makeText(getApplicationContext(), "plus", Toast.LENGTH_SHORT).show();
+                        textSize += 2;
+                        textHimno.setTextSize(textSize);
+                        return true;
+                    case R.id.action_minus:
+                        Toast.makeText(getApplicationContext(), "minus", Toast.LENGTH_SHORT).show();
+                        textSize -= 2;
+                        textHimno.setTextSize(textSize);
+                        return true;
+                }
+                return false;
+            }
+        });
         upPanelLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
         upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
     }
@@ -48,32 +63,35 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
-//        MenuItem item = menu.findItem(R.id.action_search);
-//        SearchView searchView = (SearchView) MenuItemCompat.getActionView(item);
-//        searchView.setOnQueryTextListener(this);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_add) {
-            Toast.makeText(this, "something", Toast.LENGTH_SHORT).show();
-            return true;
+        switch (item.getItemId()) {
+            case R.id.action_search:
+                Toast.makeText(this, "search", Toast.LENGTH_SHORT).show();
+                return true;
+            case R.id.action_about:
+                Toast.makeText(this, "about", Toast.LENGTH_SHORT).show();
+                return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
     public void numOk(View view) {
-        Toast.makeText(this, "OK", Toast.LENGTH_SHORT).show();
         upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+        toolbarPanel = (Toolbar) findViewById(R.id.toolbar_panel);
         toolbarPanel.setTitle(numberHimno.getText());
-
     }
 
     public void inputDelete(View view) {
-        numberHimno.setText("");
+        if (numberHimno.getText().length() <= 1) {
+            numberHimno.setText("");
+        } else {
+            String num = numberHimno.getText().toString();
+            numberHimno.setText(num.substring(0, numberHimno.getText().length() - 1));
+        }
     }
 
     public void number0(View view) {

@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_plus"
+        android:icon="@android:drawable/ic_menu_add"
+        android:title="aumentar tamaño"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_minus"
+        android:icon="@android:drawable/ic_menu_close_clear_cancel"
+        android:title="reducir tamaño"
+        app:showAsAction="ifRoom" />
+</menu>
