@@ -1,13 +1,13 @@
 package org.ajcm.hiad;
 
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -15,7 +15,8 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String TAG = "MainActivity";
+    private static final String TAG = MainActivity.class.getSimpleName();
+    private static final String CURRENT_TEXT_NUMBER = "current_text_number";
     private TextView textHimno;
     private TextView numberHimno;
     private SlidingUpPanelLayout upPanelLayout;
@@ -29,7 +30,8 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         numberHimno = (TextView) findViewById(R.id.number_himno);
         textHimno = (TextView) findViewById(R.id.text_himno);
-        textSize = textHimno.getTextSize();
+        textSize = 20;
+        textHimno.setTextSize(textSize);
         toolbarPanel = (Toolbar) findViewById(R.id.toolbar_panel);
         toolbarPanel.inflateMenu(R.menu.menu_himno);
         toolbarPanel.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
@@ -37,13 +39,11 @@ public class MainActivity extends AppCompatActivity {
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.action_plus:
-                        Toast.makeText(getApplicationContext(), "plus", Toast.LENGTH_SHORT).show();
-                        textSize += 2;
+                        textSize += 1;
                         textHimno.setTextSize(textSize);
                         return true;
                     case R.id.action_minus:
-                        Toast.makeText(getApplicationContext(), "minus", Toast.LENGTH_SHORT).show();
-                        textSize -= 2;
+                        textSize -= 1;
                         textHimno.setTextSize(textSize);
                         return true;
                 }
@@ -52,12 +52,29 @@ public class MainActivity extends AppCompatActivity {
         });
         upPanelLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
         upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+
+        ImageView backSpaceButton = (ImageView) findViewById(R.id.back_space);
+        backSpaceButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                numberHimno.setText("");
+                return true;
+            }
+        });
+        restoreDataSaved(savedInstanceState);
+    }
+
+    private void restoreDataSaved(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            numberHimno.setText(savedInstanceState.getString(CURRENT_TEXT_NUMBER));
+        }
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
-        super.onSaveInstanceState(outState, outPersistentState);
-        Log.i(TAG, "" + outState.toString());
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(CURRENT_TEXT_NUMBER, numberHimno.getText().toString());
+        Log.i(TAG, "save instance: " + outState.toString());
     }
 
     @Override

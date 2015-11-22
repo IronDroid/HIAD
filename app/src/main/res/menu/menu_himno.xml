@@ -2,13 +2,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_plus"
-        android:icon="@android:drawable/ic_menu_add"
+        android:icon="@drawable/ic_action_plus"
         android:title="aumentar tamaño"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_minus"
-        android:icon="@android:drawable/ic_menu_close_clear_cancel"
+        android:icon="@drawable/ic_action_minus"
         android:title="reducir tamaño"
         app:showAsAction="ifRoom" />
 </menu>
