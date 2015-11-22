@@ -85,7 +85,23 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="@dimen/activity_vertical_margin"
-            android:text="asdkañslfkañlskflñajflñasdjfña ña sjdfña jfñlajsdñfja sñldjf añsdhklajsvnevnefvnoinvla" />
+            android:text="1.\n
+Cantad alegres al Señor,\n
+mortales todos por doquier;\n
+servidle siempre con fervor,\n
+obedecedle con placer.\n
+2.\n
+Con gratitud canción alzad\n
+al Hacedor que el ser os dio;\n
+al Dios excelso venerad,\n
+que como Padre nos amó.\n
+3.\n
+Su pueblo somos: salvará\n
+a los que busquen al Señor;\n
+ninguno de ellos dejará;\n
+él los ampara con su amor.\n
+
+" />
 
     </LinearLayout>
 </com.sothree.slidinguppanel.SlidingUpPanelLayout>

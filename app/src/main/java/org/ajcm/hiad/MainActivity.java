@@ -148,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void number1(View view) {
-        numberHimno.setText(numberHimno.getText() + "1");
+        numberHimno.setText(numberHimno.getText().toString() + "1");
     }
 
     @Override

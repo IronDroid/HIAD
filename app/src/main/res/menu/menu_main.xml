@@ -4,12 +4,12 @@
     tools:context=".MainActivity">
     <item
         android:id="@+id/action_search"
-        android:icon="@android:drawable/ic_menu_search"
-        android:title="search"
+        android:icon="@drawable/ic_search_white_24dp"
+        android:title="@string/himnos_list"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_about"
-        android:title="about"
+        android:title="@string/about_string"
         app:showAsAction="never" />
 </menu>

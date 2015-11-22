@@ -3,12 +3,12 @@
     <item
         android:id="@+id/action_plus"
         android:icon="@drawable/ic_action_plus"
-        android:title="aumentar tamaño"
+        android:title="@string/plus_size_string"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_minus"
         android:icon="@drawable/ic_action_minus"
-        android:title="reducir tamaño"
+        android:title="@string/minus_size_string"
         app:showAsAction="ifRoom" />
 </menu>
