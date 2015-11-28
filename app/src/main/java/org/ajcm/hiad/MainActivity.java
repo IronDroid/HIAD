@@ -1,5 +1,6 @@
 package org.ajcm.hiad;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -19,6 +20,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String CURRENT_TEXT_NUMBER = "current_text_number";
     private TextView textHimno;
     private TextView numberHimno;
+    private TextView placeholderHimno;
     private SlidingUpPanelLayout upPanelLayout;
     private Toolbar toolbarPanel;
     private float textSize;
@@ -30,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         numberHimno = (TextView) findViewById(R.id.number_himno);
         textHimno = (TextView) findViewById(R.id.text_himno);
+        placeholderHimno = (TextView) findViewById(R.id.placeholder_himno);
         textSize = 20;
         textHimno.setTextSize(textSize);
         toolbarPanel = (Toolbar) findViewById(R.id.toolbar_panel);
@@ -58,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onLongClick(View view) {
                 numberHimno.setText("");
+                placeholderHimno.setText(R.string.placeholder_himno);
                 return true;
             }
         });
@@ -83,11 +87,12 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_search:
-                Toast.makeText(this, "search", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, SearchActivity.class));
                 return true;
             case R.id.action_about:
                 Toast.makeText(this, "about", Toast.LENGTH_SHORT).show();
@@ -105,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
     public void inputDelete(View view) {
         if (numberHimno.getText().length() <= 1) {
             numberHimno.setText("");
+            placeholderHimno.setText(R.string.placeholder_himno);
         } else {
             String num = numberHimno.getText().toString();
             numberHimno.setText(num.substring(0, numberHimno.getText().length() - 1));
@@ -112,42 +118,52 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void number0(View view) {
+        placeholderHimno.setText("");
         numberHimno.setText(numberHimno.getText() + "0");
     }
 
     public void number9(View view) {
+        placeholderHimno.setText("");
         numberHimno.setText(numberHimno.getText() + "9");
     }
 
     public void number8(View view) {
+        placeholderHimno.setText("");
         numberHimno.setText(numberHimno.getText() + "8");
     }
 
     public void number7(View view) {
+        placeholderHimno.setText("");
         numberHimno.setText(numberHimno.getText() + "7");
     }
 
     public void number6(View view) {
+        placeholderHimno.setText("");
         numberHimno.setText(numberHimno.getText() + "6");
     }
 
     public void number5(View view) {
+        placeholderHimno.setText("");
         numberHimno.setText(numberHimno.getText() + "5");
     }
 
     public void number4(View view) {
+        placeholderHimno.setText("");
         numberHimno.setText(numberHimno.getText() + "4");
     }
 
     public void number3(View view) {
+        placeholderHimno.setText("");
         numberHimno.setText(numberHimno.getText() + "3");
     }
 
     public void number2(View view) {
+        placeholderHimno.setText("");
         numberHimno.setText(numberHimno.getText() + "2");
     }
 
     public void number1(View view) {
+        placeholderHimno.setText("");
         numberHimno.setText(numberHimno.getText().toString() + "1");
     }
 

@@ -4,4 +4,6 @@
     <string name="about_string">Acerca de...</string>
     <string name="minus_size_string">Reducir tamaño</string>
     <string name="plus_size_string">Aumentar tamaño</string>
+    <string name="action_search">Busqueda de himnos</string>
+    <string name="placeholder_himno">Número de Himno</string>
 </resources>

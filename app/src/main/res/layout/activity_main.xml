@@ -36,6 +36,17 @@
                 android:singleLine="true"
                 android:textSize="24sp" />
 
+            <TextView
+                android:id="@+id/placeholder_himno"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:gravity="center_vertical"
+                android:paddingLeft="16dp"
+                android:paddingRight="56dp"
+                android:singleLine="true"
+                android:text="@string/placeholder_himno"
+                android:textSize="24sp" />
+
             <ImageButton
                 android:id="@+id/back_space"
                 android:layout_width="wrap_content"
