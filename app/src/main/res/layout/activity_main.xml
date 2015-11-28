@@ -65,7 +65,7 @@
             android:layout_marginBottom="8dp"
             android:background="@color/flat_pressed" />
 
-        <include layout="@layout/dialpad" />
+        <include layout="@layout/dialpad"  />
 
         <TextView
             android:padding="@dimen/box_padding"

@@ -1,5 +1,7 @@
 package org.ajcm.hiad;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -71,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
     private void restoreDataSaved(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             numberHimno.setText(savedInstanceState.getString(CURRENT_TEXT_NUMBER));
+            placeholderHimno.setText("");
         }
     }
 
@@ -84,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+        return super.onCreateOptionsMenu(menu);
     }
 
 
@@ -95,7 +98,18 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(this, SearchActivity.class));
                 return true;
             case R.id.action_about:
-                Toast.makeText(this, "about", Toast.LENGTH_SHORT).show();
+                new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.app_name)+ " v1.0")
+                        .setMessage("Desarrollado por:" +
+                                "\nAlex Jhonny Cruz Mamani" +
+                                "\nDesarrollador Android Entusiasta" +
+                                "\nEmail: jhonlimaster@gmail.com" +
+                                "\nTwitter: @jhonlimaster")
+                        .setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.dismiss();
+                            }
+                        }).show();
                 return true;
         }
         return super.onOptionsItemSelected(item);
