@@ -6,4 +6,5 @@
     <string name="plus_size_string">Aumentar tamaño</string>
     <string name="action_search">Busqueda de himnos</string>
     <string name="placeholder_himno">Número de Himno</string>
+    <string name="rate_app">Calificar aplicación</string>
 </resources>

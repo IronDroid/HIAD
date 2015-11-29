@@ -65,54 +65,19 @@
             android:layout_marginBottom="8dp"
             android:background="@color/flat_pressed" />
 
-        <include layout="@layout/dialpad"  />
-
         <TextView
-            android:padding="@dimen/box_padding"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/box_padding"
             android:layout_marginRight="@dimen/box_padding"
-            android:layout_width="wrap_content"
             android:gravity="center_horizontal|center_vertical"
-            android:layout_height="wrap_content"
-            android:text="este espacio es para un versiculo que tenga que ver con el hecho de cantar." />
-    </LinearLayout>
+            android:padding="@dimen/btn_flat_padding"
+            android:text="Este espacio es para un versiculo que tenga que ver con el hecho de cantar." />
 
-    <!--<include layout="@layout/panel_up"/>-->
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar_panel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="?attr/actionBarSize"
-            android:theme="@style/AppThemeToolbar" />
-
-        <TextView
-            android:id="@+id/text_himno"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="@dimen/activity_vertical_margin"
-            android:text="1.\n
-Cantad alegres al Señor,\n
-mortales todos por doquier;\n
-servidle siempre con fervor,\n
-obedecedle con placer.\n
-2.\n
-Con gratitud canción alzad\n
-al Hacedor que el ser os dio;\n
-al Dios excelso venerad,\n
-que como Padre nos amó.\n
-3.\n
-Su pueblo somos: salvará\n
-a los que busquen al Señor;\n
-ninguno de ellos dejará;\n
-él los ampara con su amor.\n
-
-" />
+        <include layout="@layout/dialpad" />
 
     </LinearLayout>
+
+    <include layout="@layout/panel_up" />
+
 </com.sothree.slidinguppanel.SlidingUpPanelLayout>

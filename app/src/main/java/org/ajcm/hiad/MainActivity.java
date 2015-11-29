@@ -3,6 +3,7 @@ package org.ajcm.hiad;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -12,7 +13,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
@@ -20,6 +20,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String CURRENT_TEXT_NUMBER = "current_text_number";
+    private static final String APP_PNAME = "org.ajcm.hiad";
     private TextView textHimno;
     private TextView numberHimno;
     private TextView placeholderHimno;
@@ -97,8 +98,11 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_search:
                 startActivity(new Intent(this, SearchActivity.class));
                 return true;
+            case R.id.action_rate:
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + APP_PNAME)));
+                return true;
             case R.id.action_about:
-                new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.app_name)+ " v1.0")
+                new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.app_name) + " v1.0")
                         .setMessage("Desarrollado por:" +
                                 "\nAlex Jhonny Cruz Mamani" +
                                 "\nDesarrollador Android Entusiasta" +
@@ -178,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void number1(View view) {
         placeholderHimno.setText("");
-        numberHimno.setText(numberHimno.getText().toString() + "1");
+        numberHimno.setText(numberHimno.getText() + "1");
     }
 
     @Override
