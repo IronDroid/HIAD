@@ -36,9 +36,9 @@
         <item name="android:gravity">center_horizontal</item>
         <item name="android:background">@drawable/btn_flat_selector</item>
         <item name="android:textColor">@color/btn_flat_selector</item>
-        <item name="android:textSize">28sp</item>
-        <item name="android:paddingTop">16dp</item>
-        <item name="android:paddingBottom">16dp</item>
+        <item name="android:textSize">@dimen/text_size_dialpad</item>
+        <item name="android:paddingTop">@dimen/padding_dialpad</item>
+        <item name="android:paddingBottom">@dimen/padding_dialpad</item>
         <item name="android:layout_marginBottom">@dimen/btn_flat_min</item>
         <item name="android:layout_marginLeft">@dimen/btn_flat_min</item>
         <item name="android:layout_marginRight">@dimen/btn_flat_min</item>

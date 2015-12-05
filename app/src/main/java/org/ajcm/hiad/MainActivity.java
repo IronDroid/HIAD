@@ -21,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String CURRENT_TEXT_NUMBER = "current_text_number";
     private static final String APP_PNAME = "org.ajcm.hiad";
+    private static final String TOOLBAR_PANEL_TITLE = "toolbar_panel_title";
     private TextView textHimno;
     private TextView numberHimno;
     private TextView placeholderHimno;
@@ -32,7 +33,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        if (toolbar != null){
+            setSupportActionBar(toolbar);
+        }
         numberHimno = (TextView) findViewById(R.id.number_himno);
         textHimno = (TextView) findViewById(R.id.text_himno);
         placeholderHimno = (TextView) findViewById(R.id.placeholder_himno);
@@ -74,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
     private void restoreDataSaved(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             numberHimno.setText(savedInstanceState.getString(CURRENT_TEXT_NUMBER));
+            toolbarPanel.setTitle(savedInstanceState.getString(TOOLBAR_PANEL_TITLE));
             placeholderHimno.setText("");
         }
     }
@@ -82,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(CURRENT_TEXT_NUMBER, numberHimno.getText().toString());
+        outState.putString(TOOLBAR_PANEL_TITLE, numberHimno.getText().toString());
         Log.i(TAG, "save instance: " + outState.toString());
     }
 
@@ -121,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void numOk(View view) {
         upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
-        toolbarPanel = (Toolbar) findViewById(R.id.toolbar_panel);
+//        toolbarPanel = (Toolbar) findViewById(R.id.toolbar_panel);
         toolbarPanel.setTitle(numberHimno.getText());
     }
 

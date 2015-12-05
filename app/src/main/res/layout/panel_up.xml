@@ -8,16 +8,21 @@
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar_panel"
         android:layout_width="match_parent"
+        android:background="?attr/colorPrimary"
         android:layout_height="wrap_content"
         android:minHeight="?attr/actionBarSize"
         android:theme="@style/AppThemeToolbar" />
 
-    <TextView
-        android:id="@+id/text_himno"
+    <ScrollView
+        android:id="@+id/scroll_himno"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="@dimen/activity_vertical_margin"
-        android:text="1.\n
+        android:layout_height="match_parent">
+        <TextView
+            android:id="@+id/text_himno"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="@dimen/activity_vertical_margin"
+            android:text="1.\n
 Cantad alegres al Señor,\n
 mortales todos por doquier;\n
 servidle siempre con fervor,\n
@@ -34,5 +39,6 @@ ninguno de ellos dejará;\n
 él los ampara con su amor.\n
 
 " />
+    </ScrollView>
 
 </LinearLayout>
