@@ -7,4 +7,5 @@
     <string name="action_search">Busqueda de himnos</string>
     <string name="placeholder_himno">Número de Himno</string>
     <string name="rate_app">Calificar aplicación</string>
+    <string name="version_himno">Antiguo</string>
 </resources>

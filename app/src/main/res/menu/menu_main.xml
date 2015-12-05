@@ -11,6 +11,11 @@
         android:title="@string/rate_app"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_version_himno"
+        android:title="@string/version_himno"
+        android:checkable="true"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_about"
         android:title="@string/about_string"
         app:showAsAction="never" />

@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String CURRENT_TEXT_NUMBER = "current_text_number";
     private static final String APP_PNAME = "org.ajcm.hiad";
     private static final String TOOLBAR_PANEL_TITLE = "toolbar_panel_title";
+
     private TextView textHimno;
     private TextView numberHimno;
     private TextView placeholderHimno;
@@ -29,12 +30,17 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbarPanel;
     private float textSize;
 
+    private String numString;
+    private int numero;
+    private int himnoLimite;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        himnoLimite = 517;
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        if (toolbar != null){
+        if (toolbar != null) {
             setSupportActionBar(toolbar);
         }
         numberHimno = (TextView) findViewById(R.id.number_himno);
@@ -69,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
             public boolean onLongClick(View view) {
                 numberHimno.setText("");
                 placeholderHimno.setText(R.string.placeholder_himno);
+                numero = 0;
                 return true;
             }
         });
@@ -104,6 +111,16 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_search:
                 startActivity(new Intent(this, SearchActivity.class));
                 return true;
+            case R.id.action_version_himno:
+                if (item.isChecked()) {
+                    // himnario Nuevo
+                    item.setChecked(false);
+                } else {
+                    // himanrio antiguo
+                    item.setChecked(true);
+                }
+                // TODO: 04-12-15 cambiar textos
+                return true;
             case R.id.action_rate:
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + APP_PNAME)));
                 return true;
@@ -132,63 +149,47 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void inputDelete(View view) {
-        if (numberHimno.getText().length() <= 1) {
-            numberHimno.setText("");
-            placeholderHimno.setText(R.string.placeholder_himno);
-        } else {
-            String num = numberHimno.getText().toString();
-            numberHimno.setText(num.substring(0, numberHimno.getText().length() - 1));
-        }
+        menosUno();
     }
 
     public void number0(View view) {
-        placeholderHimno.setText("");
-        numberHimno.setText(numberHimno.getText() + "0");
+        masUno(0);
     }
 
     public void number9(View view) {
-        placeholderHimno.setText("");
-        numberHimno.setText(numberHimno.getText() + "9");
+        masUno(9);
     }
 
     public void number8(View view) {
-        placeholderHimno.setText("");
-        numberHimno.setText(numberHimno.getText() + "8");
+        masUno(8);
     }
 
     public void number7(View view) {
-        placeholderHimno.setText("");
-        numberHimno.setText(numberHimno.getText() + "7");
+        masUno(7);
     }
 
     public void number6(View view) {
-        placeholderHimno.setText("");
-        numberHimno.setText(numberHimno.getText() + "6");
+        masUno(6);
     }
 
     public void number5(View view) {
-        placeholderHimno.setText("");
-        numberHimno.setText(numberHimno.getText() + "5");
+        masUno(5);
     }
 
     public void number4(View view) {
-        placeholderHimno.setText("");
-        numberHimno.setText(numberHimno.getText() + "4");
+        masUno(4);
     }
 
     public void number3(View view) {
-        placeholderHimno.setText("");
-        numberHimno.setText(numberHimno.getText() + "3");
+        masUno(3);
     }
 
     public void number2(View view) {
-        placeholderHimno.setText("");
-        numberHimno.setText(numberHimno.getText() + "2");
+        masUno(2);
     }
 
     public void number1(View view) {
-        placeholderHimno.setText("");
-        numberHimno.setText(numberHimno.getText() + "1");
+        masUno(1);
     }
 
     @Override
@@ -199,6 +200,44 @@ public class MainActivity extends AppCompatActivity {
             upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
         } else {
             super.onBackPressed();
+        }
+    }
+
+    public void masUno(int num) {
+        placeholderHimno.setText("");
+
+        numString = numberHimno.getText().toString() + num;
+        numero = Integer.parseInt(numString);
+
+        if (numero > 0 && numero <= himnoLimite) {
+            // buscar titulo para mostrar
+            numberHimno.setText(numString);
+        } else {
+            numString = numString.substring(0, numString.length() - 1);
+            if (numString.length() > 0) {
+                numero = Integer.parseInt(numString);
+            } else {
+                numero = 0;
+                placeholderHimno.setText(R.string.placeholder_himno);
+            }
+        }
+    }
+
+    public void menosUno() {
+        if (numString.length() <= 1) {
+            numString = "";
+            numero = 0;
+        } else {
+            numString = numString.substring(0, numString.length() - 1);
+            numero = Integer.parseInt(numString);
+        }
+        if (numero > 0 && numero <= himnoLimite) {
+            // buscar titulo para mostrar
+            numberHimno.setText(numString);
+        } else {
+            // mostrar placeholder
+            numberHimno.setText("");
+            placeholderHimno.setText(R.string.placeholder_himno);
         }
     }
 }
