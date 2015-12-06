@@ -16,6 +16,8 @@ import android.widget.TextView;
 
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import java.util.Random;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -84,6 +86,9 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+        String[] textos= getResources().getStringArray(R.array.textos_alabanza);
+        int random = new Random().nextInt(textos.length);
+        ((TextView) findViewById(R.id.texto_alabanza)).setText(textos[random]);
         restoreDataSaved(savedInstanceState);
     }
 

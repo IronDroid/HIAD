@@ -68,11 +68,12 @@
             android:background="@color/flat_pressed" />
 
         <TextView
+            android:id="@+id/texto_alabanza"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/box_padding"
             android:layout_marginRight="@dimen/box_padding"
-            android:gravity="center_horizontal|center_vertical"
+            android:gravity="center_horizontal"
             android:padding="@dimen/btn_flat_padding"
             android:text="Este espacio es para un versiculo que tenga que ver con el hecho de cantar." />
 

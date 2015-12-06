@@ -77,27 +77,27 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_gravity="center">
+                android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/textView"
-                    android:textColor="@color/colorPrimary"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
                     android:text="@string/app_name"
                     android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:layout_gravity="center_horizontal" />
+                    android:textColor="@color/colorPrimary" />
 
                 <TextView
+                    android:id="@+id/texto_alabanza"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="@dimen/box_padding"
                     android:layout_marginRight="@dimen/box_padding"
                     android:gravity="center_horizontal"
-                    android:padding="@dimen/btn_flat_padding"
-                    android:text="Este espacio es para un versiculo que tenga que ver con el hecho de cantar." />
+                    android:padding="@dimen/btn_flat_padding" />
             </LinearLayout>
         </LinearLayout>
 
