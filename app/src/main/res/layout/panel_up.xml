@@ -22,7 +22,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="@dimen/activity_vertical_margin"
-            android:text="1.\n
+            android:text="
+1.\n
 Cantad alegres al Señor,\n
 mortales todos por doquier;\n
 servidle siempre con fervor,\n

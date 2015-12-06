@@ -22,6 +22,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String CURRENT_TEXT_NUMBER = "current_text_number";
     private static final String APP_PNAME = "org.ajcm.hiad";
     private static final String TOOLBAR_PANEL_TITLE = "toolbar_panel_title";
+    private static final String NUM_STRING = "num_string";
+    private static final float DEFAULT_TEXT_SIZE = 20;
 
     private TextView textHimno;
     private TextView numberHimno;
@@ -32,13 +34,16 @@ public class MainActivity extends AppCompatActivity {
 
     private String numString;
     private int numero;
-    private int himnoLimite;
+    private int limit;
+    private static final int OLD_LIMIT = 527;
+    private static final int NEW_LIMIT = 613;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        himnoLimite = 517;
+        limit = NEW_LIMIT;
+        numString = "";
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
@@ -46,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
         numberHimno = (TextView) findViewById(R.id.number_himno);
         textHimno = (TextView) findViewById(R.id.text_himno);
         placeholderHimno = (TextView) findViewById(R.id.placeholder_himno);
-        textSize = 20;
+        textSize = DEFAULT_TEXT_SIZE;
         textHimno.setTextSize(textSize);
         toolbarPanel = (Toolbar) findViewById(R.id.toolbar_panel);
         toolbarPanel.inflateMenu(R.menu.menu_himno);
@@ -85,8 +90,14 @@ public class MainActivity extends AppCompatActivity {
     private void restoreDataSaved(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             numberHimno.setText(savedInstanceState.getString(CURRENT_TEXT_NUMBER));
+            if (numberHimno.getText().toString().length() > 0){
+                placeholderHimno.setText("");
+            } else {
+                placeholderHimno.setText(R.string.placeholder_himno);
+            }
             toolbarPanel.setTitle(savedInstanceState.getString(TOOLBAR_PANEL_TITLE));
-            placeholderHimno.setText("");
+            numString = savedInstanceState.getString(NUM_STRING);
+
         }
     }
 
@@ -95,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         outState.putString(CURRENT_TEXT_NUMBER, numberHimno.getText().toString());
         outState.putString(TOOLBAR_PANEL_TITLE, numberHimno.getText().toString());
+        outState.putString(NUM_STRING, numString);
         Log.i(TAG, "save instance: " + outState.toString());
     }
 
@@ -114,12 +126,17 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_version_himno:
                 if (item.isChecked()) {
                     // himnario Nuevo
+                    limit = NEW_LIMIT;
                     item.setChecked(false);
                 } else {
                     // himanrio antiguo
+                    limit = OLD_LIMIT;
                     item.setChecked(true);
                 }
-                // TODO: 04-12-15 cambiar textos
+                numberHimno.setText("");
+                numString = "";
+                numero = 0;
+                placeholderHimno.setText(R.string.placeholder_himno);
                 return true;
             case R.id.action_rate:
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + APP_PNAME)));
@@ -143,8 +160,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void numOk(View view) {
+        textSize = DEFAULT_TEXT_SIZE;
         upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
 //        toolbarPanel = (Toolbar) findViewById(R.id.toolbar_panel);
+        // get himno from DB
         toolbarPanel.setTitle(numberHimno.getText());
     }
 
@@ -209,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
         numString = numberHimno.getText().toString() + num;
         numero = Integer.parseInt(numString);
 
-        if (numero > 0 && numero <= himnoLimite) {
+        if (numero > 0 && numero <= limit) {
             // buscar titulo para mostrar
             numberHimno.setText(numString);
         } else {
@@ -231,7 +250,7 @@ public class MainActivity extends AppCompatActivity {
             numString = numString.substring(0, numString.length() - 1);
             numero = Integer.parseInt(numString);
         }
-        if (numero > 0 && numero <= himnoLimite) {
+        if (numero > 0 && numero <= limit) {
             // buscar titulo para mostrar
             numberHimno.setText(numString);
         } else {
@@ -240,4 +259,20 @@ public class MainActivity extends AppCompatActivity {
             placeholderHimno.setText(R.string.placeholder_himno);
         }
     }
+
+    private String letra = "1.\\n\n" +
+            "Cantad alegres al Señor,\\n\n" +
+            "mortales todos por doquier;\\n\n" +
+            "servidle siempre con fervor,\\n\n" +
+            "obedecedle con placer.\\n\n" +
+            "2.\\n\n" +
+            "Con gratitud canción alzad\\n\n" +
+            "al Hacedor que el ser os dio;\\n\n" +
+            "al Dios excelso venerad,\\n\n" +
+            "que como Padre nos amó.\\n\n" +
+            "3.\\n\n" +
+            "Su pueblo somos: salvará\\n\n" +
+            "a los que busquen al Señor;\\n\n" +
+            "ninguno de ellos dejará;\\n\n" +
+            "él los ampara con su amor.\\n";
 }
