@@ -3,6 +3,7 @@ package org.ajcm.hiad;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -16,6 +17,10 @@ import android.widget.TextView;
 
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import org.ajcm.hiad.dataset.DBAdapter;
+import org.ajcm.hiad.models.Himno;
+
+import java.util.ArrayList;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
@@ -25,15 +30,19 @@ public class MainActivity extends AppCompatActivity {
     private static final String APP_PNAME = "org.ajcm.hiad";
     private static final String TOOLBAR_PANEL_TITLE = "toolbar_panel_title";
     private static final String NUM_STRING = "num_string";
-    private static final float DEFAULT_TEXT_SIZE = 20;
+    private static final float DEFAULT_TEXT_SIZE = 18;
+    private static final int SEARCH_HIMNO = 7;
 
     private TextView textHimno;
     private TextView numberHimno;
     private TextView placeholderHimno;
     private SlidingUpPanelLayout upPanelLayout;
     private Toolbar toolbarPanel;
-    private float textSize;
+    private DBAdapter dbAdapter;
+    private ArrayList<Himno> himnos;
 
+    private boolean versionHimno;
+    private float textSize;
     private String numString;
     private int numero;
     private int limit;
@@ -44,37 +53,24 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         limit = NEW_LIMIT;
         numString = "";
+        textSize = DEFAULT_TEXT_SIZE;
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
         }
+
+        dbAdapter = new DBAdapter(this);
+        getData();
+
         numberHimno = (TextView) findViewById(R.id.number_himno);
         textHimno = (TextView) findViewById(R.id.text_himno);
         placeholderHimno = (TextView) findViewById(R.id.placeholder_himno);
-        textSize = DEFAULT_TEXT_SIZE;
-        textHimno.setTextSize(textSize);
-        toolbarPanel = (Toolbar) findViewById(R.id.toolbar_panel);
-        toolbarPanel.inflateMenu(R.menu.menu_himno);
-        toolbarPanel.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.action_plus:
-                        textSize += 1;
-                        textHimno.setTextSize(textSize);
-                        return true;
-                    case R.id.action_minus:
-                        textSize -= 1;
-                        textHimno.setTextSize(textSize);
-                        return true;
-                }
-                return false;
-            }
-        });
-        upPanelLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-        upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+
+        setupUpPanel();
 
         ImageView backSpaceButton = (ImageView) findViewById(R.id.back_space);
         backSpaceButton.setOnLongClickListener(new View.OnLongClickListener() {
@@ -83,27 +79,26 @@ public class MainActivity extends AppCompatActivity {
                 numberHimno.setText("");
                 placeholderHimno.setText(R.string.placeholder_himno);
                 numero = 0;
+                numString = "";
                 return true;
             }
         });
-        String[] textos= getResources().getStringArray(R.array.textos_alabanza);
+
+        String[] textos = getResources().getStringArray(R.array.textos_alabanza);
         int random = new Random().nextInt(textos.length);
         ((TextView) findViewById(R.id.texto_alabanza)).setText(textos[random]);
+
         restoreDataSaved(savedInstanceState);
     }
 
-    private void restoreDataSaved(Bundle savedInstanceState) {
-        if (savedInstanceState != null) {
-            numberHimno.setText(savedInstanceState.getString(CURRENT_TEXT_NUMBER));
-            if (numberHimno.getText().toString().length() > 0){
-                placeholderHimno.setText("");
-            } else {
-                placeholderHimno.setText(R.string.placeholder_himno);
-            }
-            toolbarPanel.setTitle(savedInstanceState.getString(TOOLBAR_PANEL_TITLE));
-            numString = savedInstanceState.getString(NUM_STRING);
-
+    private void getData() {
+        dbAdapter.open();
+        himnos = new ArrayList<>();
+        Cursor allHimno = dbAdapter.getAllHimno(versionHimno);
+        while (allHimno.moveToNext()){
+            himnos.add(Himno.fromCursor(allHimno));
         }
+        dbAdapter.close();
     }
 
     @Override
@@ -126,26 +121,32 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_search:
-                startActivity(new Intent(this, SearchActivity.class));
+                startActivityForResult(new Intent(this, SearchActivity.class).putExtra("version", versionHimno), SEARCH_HIMNO);
                 return true;
+
             case R.id.action_version_himno:
                 if (item.isChecked()) {
                     // himnario Nuevo
+                    versionHimno = false;
                     limit = NEW_LIMIT;
                     item.setChecked(false);
                 } else {
                     // himanrio antiguo
+                    versionHimno = true;
                     limit = OLD_LIMIT;
                     item.setChecked(true);
                 }
+                getData();
                 numberHimno.setText("");
                 numString = "";
                 numero = 0;
                 placeholderHimno.setText(R.string.placeholder_himno);
                 return true;
+
             case R.id.action_rate:
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + APP_PNAME)));
                 return true;
+
             case R.id.action_about:
                 new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.app_name) + " v1.0")
                         .setMessage("Desarrollado por:" +
@@ -164,12 +165,46 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onBackPressed() {
+        if (upPanelLayout != null &&
+                (upPanelLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED ||
+                        upPanelLayout.getPanelState() == SlidingUpPanelLayout.PanelState.ANCHORED)) {
+            upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK){
+            numero = data.getExtras().getInt("numero", 0);
+            Log.e(TAG, "result ok: " + numero);
+            textSize = DEFAULT_TEXT_SIZE;
+            textHimno.setTextSize(textSize);
+            if (numero > 0) {
+                placeholderHimno.setText("");
+                numString = "" + numero;
+                upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+                String titleShow = numString + ". " + himnos.get(numero - 1).getTitulo();
+                toolbarPanel.setTitle(titleShow);
+                numberHimno.setText(titleShow);
+                textHimno.setText(himnos.get(numero - 1).getLetra());
+            }
+        }
+    }
+
     public void numOk(View view) {
         textSize = DEFAULT_TEXT_SIZE;
-        upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
-//        toolbarPanel = (Toolbar) findViewById(R.id.toolbar_panel);
-        // get himno from DB
-        toolbarPanel.setTitle(numberHimno.getText());
+        textHimno.setTextSize(textSize);
+        if (numero > 0) {
+            upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+            String titleShow = numString + ". " + himnos.get(numero - 1).getTitulo();
+            toolbarPanel.setTitle(titleShow);
+            textHimno.setText(himnos.get(numero - 1).getLetra());
+        }
     }
 
     public void inputDelete(View view) {
@@ -216,26 +251,16 @@ public class MainActivity extends AppCompatActivity {
         masUno(1);
     }
 
-    @Override
-    public void onBackPressed() {
-        if (upPanelLayout != null &&
-                (upPanelLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED ||
-                        upPanelLayout.getPanelState() == SlidingUpPanelLayout.PanelState.ANCHORED)) {
-            upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
-        } else {
-            super.onBackPressed();
-        }
-    }
-
     public void masUno(int num) {
         placeholderHimno.setText("");
 
-        numString = numberHimno.getText().toString() + num;
+        numString = numString + num;
         numero = Integer.parseInt(numString);
 
         if (numero > 0 && numero <= limit) {
             // buscar titulo para mostrar
-            numberHimno.setText(numString);
+            String titleShow = numString + ". " + himnos.get(numero - 1).getTitulo();
+            numberHimno.setText(titleShow);
         } else {
             numString = numString.substring(0, numString.length() - 1);
             if (numString.length() > 0) {
@@ -257,12 +282,51 @@ public class MainActivity extends AppCompatActivity {
         }
         if (numero > 0 && numero <= limit) {
             // buscar titulo para mostrar
-            numberHimno.setText(numString);
+            String titleShow = numString + ". " + himnos.get(numero - 1).getTitulo();
+            numberHimno.setText(titleShow);
         } else {
             // mostrar placeholder
             numberHimno.setText("");
             placeholderHimno.setText(R.string.placeholder_himno);
         }
+    }
+
+    private void restoreDataSaved(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            numberHimno.setText(savedInstanceState.getString(CURRENT_TEXT_NUMBER));
+            if (numberHimno.getText().toString().length() > 0) {
+                placeholderHimno.setText("");
+            } else {
+                placeholderHimno.setText(R.string.placeholder_himno);
+            }
+            toolbarPanel.setTitle(savedInstanceState.getString(TOOLBAR_PANEL_TITLE));
+            numString = savedInstanceState.getString(NUM_STRING);
+
+        }
+    }
+
+    private void setupUpPanel() {
+        textHimno.setTextSize(textSize);
+        toolbarPanel = (Toolbar) findViewById(R.id.toolbar_panel);
+        toolbarPanel.inflateMenu(R.menu.menu_himno);
+        toolbarPanel.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.action_plus:
+                        textSize += 1;
+                        textHimno.setTextSize(textSize);
+                        return true;
+                    case R.id.action_minus:
+                        textSize -= 1;
+                        textHimno.setTextSize(textSize);
+                        return true;
+                }
+                return false;
+            }
+        });
+        upPanelLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+        upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
     }
 
     private String letra = "1.\\n\n" +

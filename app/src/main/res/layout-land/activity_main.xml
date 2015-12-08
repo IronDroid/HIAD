@@ -32,7 +32,7 @@
                 android:paddingLeft="16dp"
                 android:paddingRight="64dp"
                 android:singleLine="true"
-                android:textSize="24sp" />
+                android:textSize="20sp" />
 
             <TextView
                 android:id="@+id/placeholder_himno"
@@ -43,7 +43,7 @@
                 android:paddingRight="56dp"
                 android:singleLine="true"
                 android:text="@string/placeholder_himno"
-                android:textSize="24sp" />
+                android:textSize="20sp" />
 
             <ImageButton
                 android:id="@+id/back_space"
