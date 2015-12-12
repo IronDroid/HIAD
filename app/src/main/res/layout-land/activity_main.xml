@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.sothree.slidinguppanel.SlidingUpPanelLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:sothree="http://schemas.android.com/apk/res-auto"
+    xmlns:apps="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/sliding_layout"
     android:layout_width="match_parent"
@@ -8,10 +8,10 @@
     android:background="@android:color/white"
     android:gravity="bottom"
     android:orientation="vertical"
-    sothree:umanoDragView="@+id/toolbar_panel"
-    sothree:umanoPanelHeight="0dp"
-    sothree:umanoScrollableView="@+id/scroll_himno"
-    sothree:umanoShadowHeight="4dp"
+    apps:umanoDragView="@+id/toolbar_panel"
+    apps:umanoPanelHeight="0dp"
+    apps:umanoScrollableView="@+id/scroll_himno"
+    apps:umanoShadowHeight="4dp"
     tools:context=".MainActivity">
 
     <LinearLayout
@@ -63,43 +63,57 @@
             android:layout_marginBottom="8dp"
             android:background="@color/flat_pressed" />
 
-        <LinearLayout
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <include
-                layout="@layout/dialpad"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
+            android:layout_height="match_parent">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/textView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:text="@string/app_name"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:textColor="@color/colorPrimary" />
-
-                <TextView
-                    android:id="@+id/texto_alabanza"
+                <include
+                    layout="@layout/dialpad"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="@dimen/box_padding"
-                    android:layout_marginRight="@dimen/box_padding"
-                    android:gravity="center_horizontal"
-                    android:padding="@dimen/btn_flat_padding" />
+                    android:layout_weight="1" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/textView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:text="@string/app_name"
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:textColor="@color/colorPrimary" />
+
+                    <TextView
+                        android:id="@+id/texto_alabanza"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="@dimen/box_padding"
+                        android:layout_marginRight="@dimen/box_padding"
+                        android:gravity="center_horizontal"
+                        android:padding="@dimen/btn_flat_padding" />
+
+                </LinearLayout>
             </LinearLayout>
-        </LinearLayout>
+
+            <com.google.android.gms.ads.AdView
+                android:id="@+id/adView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center_horizontal"
+                apps:adSize="BANNER"
+                apps:adUnitId="@string/banner_ad_unit_id" />
+        </FrameLayout>
 
     </LinearLayout>
 

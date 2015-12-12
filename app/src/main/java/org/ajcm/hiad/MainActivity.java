@@ -15,6 +15,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import org.ajcm.hiad.dataset.DBAdapter;
@@ -49,10 +51,16 @@ public class MainActivity extends AppCompatActivity {
     private static final int OLD_LIMIT = 527;
     private static final int NEW_LIMIT = 613;
 
+    private AdView adView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        adView = (AdView) findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        adView.loadAd(adRequest);
 
         limit = NEW_LIMIT;
         numString = "";
@@ -95,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
         dbAdapter.open();
         himnos = new ArrayList<>();
         Cursor allHimno = dbAdapter.getAllHimno(versionHimno);
-        while (allHimno.moveToNext()){
+        while (allHimno.moveToNext()) {
             himnos.add(Himno.fromCursor(allHimno));
         }
         dbAdapter.close();
@@ -177,9 +185,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onPause() {
+        if (adView != null) {
+            adView.pause();
+        }
+        super.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (adView != null) {
+            adView.resume();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        if (adView != null) {
+            adView.destroy();
+        }
+        super.onDestroy();
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK){
+        if (resultCode == RESULT_OK) {
             numero = data.getExtras().getInt("numero", 0);
             Log.e(TAG, "result ok: " + numero);
             textSize = DEFAULT_TEXT_SIZE;
