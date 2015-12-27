@@ -47,7 +47,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public void copydatabase(Context context) throws IOException {
-        this.getReadableDatabase();
+        try {
+            getReadableDatabase();
+        } catch (Exception ignored){
+        }
         InputStream input = context.getAssets().open("hiad2.db");
         OutputStream output = new FileOutputStream(pathDB);
 

@@ -17,6 +17,8 @@ import android.widget.TextView;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import org.ajcm.hiad.dataset.DBAdapter;
@@ -32,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String APP_PNAME = "org.ajcm.hiad";
     private static final String TOOLBAR_PANEL_TITLE = "toolbar_panel_title";
     private static final String NUM_STRING = "num_string";
-    private static final float DEFAULT_TEXT_SIZE = 18;
+    private static final float DEFAULT_TEXT_SIZE = 20;
     private static final int SEARCH_HIMNO = 7;
 
     private TextView textHimno;
@@ -52,15 +54,15 @@ public class MainActivity extends AppCompatActivity {
     private static final int NEW_LIMIT = 613;
 
     private AdView adView;
+    private Tracker tracker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        adView = (AdView) findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        adView.loadAd(adRequest);
+        adsMethod();
+        analitycsMethod();
 
         limit = NEW_LIMIT;
         numString = "";
@@ -107,6 +109,21 @@ public class MainActivity extends AppCompatActivity {
             himnos.add(Himno.fromCursor(allHimno));
         }
         dbAdapter.close();
+    }
+
+    private void adsMethod(){
+        adView = (AdView) findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        adView.loadAd(adRequest);
+    }
+
+    private void analitycsMethod(){
+        HiadApplication application = (HiadApplication) getApplication();
+        tracker = application.getDefaultracker();
+
+        Log.i(TAG, "Setting screen name: Main");
+        tracker.setScreenName("Activity~Main");
+        tracker.send(new HitBuilders.ScreenViewBuilder().build());
     }
 
     @Override
@@ -214,8 +231,6 @@ public class MainActivity extends AppCompatActivity {
         if (resultCode == RESULT_OK) {
             numero = data.getExtras().getInt("numero", 0);
             Log.e(TAG, "result ok: " + numero);
-            textSize = DEFAULT_TEXT_SIZE;
-            textHimno.setTextSize(textSize);
             if (numero > 0) {
                 placeholderHimno.setText("");
                 numString = "" + numero;
@@ -229,13 +244,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void numOk(View view) {
-        textSize = DEFAULT_TEXT_SIZE;
-        textHimno.setTextSize(textSize);
         if (numero > 0) {
             upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
             String titleShow = numString + ". " + himnos.get(numero - 1).getTitulo();
             toolbarPanel.setTitle(titleShow);
             textHimno.setText(himnos.get(numero - 1).getLetra());
+
+            Log.i(TAG, "Setting screen name: Himno");
+            tracker.setScreenName("Show-Himno");
+            tracker.send(new HitBuilders.EventBuilder()
+                    .setCategory("Action")
+                    .setAction("ShowHimno")
+                    .build());
         }
     }
 

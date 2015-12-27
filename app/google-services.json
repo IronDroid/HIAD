@@ -1,0 +1,125 @@
+{
+  "project_info": {
+    "project_id": "sample-1007",
+    "project_number": "128020813647",
+    "name": "sample"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "",
+        "client_id": "android:com.xiberty.bookfair",
+        "client_type": 1,
+        "android_client_info": {
+          "package_name": "com.xiberty.bookfair"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "128020813647-dn3l50s44bmar0hotkan33r4fh9s38l4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.xiberty.bookfair",
+            "certificate_hash": "F1212B7109A7A49E5E280CBF8B0A10237EB4446F"
+          }
+        }
+      ],
+      "api_key": [],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "cloud_messaging_service": {
+          "status": 1,
+          "apns_config": []
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "google_signin_service": {
+          "status": 2
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "",
+        "client_id": "android:org.ajcm.googlelogin",
+        "client_type": 1,
+        "android_client_info": {
+          "package_name": "org.ajcm.googlelogin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "128020813647-4hmdta0koma7s24or6bb0sbup9gdmtv7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "org.ajcm.googlelogin",
+            "certificate_hash": "3F1D05AA2300BBC9CACC5C0DDDC685F469A4FCF3"
+          }
+        }
+      ],
+      "api_key": [],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "cloud_messaging_service": {
+          "status": 1,
+          "apns_config": []
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "google_signin_service": {
+          "status": 2
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:128020813647:android:c74511650b83772e",
+        "client_id": "android:org.ajcm.hiad",
+        "client_type": 1,
+        "android_client_info": {
+          "package_name": "org.ajcm.hiad"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [],
+      "services": {
+        "analytics_service": {
+          "status": 2,
+          "analytics_property": {
+            "tracking_id": "UA-39967066-6"
+          }
+        },
+        "cloud_messaging_service": {
+          "status": 1,
+          "apns_config": []
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "google_signin_service": {
+          "status": 1
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "client_info": [],
+  "ARTIFACT_VERSION": "1"
+}

@@ -17,6 +17,9 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
+
 import org.ajcm.hiad.adapters.HimnoAdapter;
 import org.ajcm.hiad.dataset.DBAdapter;
 import org.ajcm.hiad.models.Himno;
@@ -33,6 +36,8 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
     private String filter;
     private boolean versionHimno;
 
+    private Tracker tracker;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +45,7 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        analitycsMethod();
         listView = (ListView) findViewById(R.id.listView);
 
         himnos = new ArrayList<>();
@@ -62,6 +68,19 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
                 finish();
             }
         });
+    }
+
+    private void analitycsMethod(){
+        HiadApplication application = (HiadApplication) getApplication();
+        tracker = application.getDefaultracker();
+
+        Log.i(TAG, "Setting screen name: Main");
+        tracker.send(new HitBuilders.ScreenViewBuilder().build());
+        tracker.setScreenName("Search-Himno");
+        tracker.send(new HitBuilders.EventBuilder()
+                .setCategory("Action")
+                .setAction("SearchHimno")
+                .build());
     }
 
     @Override
