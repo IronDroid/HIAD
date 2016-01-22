@@ -34,8 +34,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String APP_PNAME = "org.ajcm.hiad";
     private static final String TOOLBAR_PANEL_TITLE = "toolbar_panel_title";
     private static final String NUM_STRING = "num_string";
-    private static final float DEFAULT_TEXT_SIZE = 20;
+    private static final String NUMERO = "numero";
     private static final int SEARCH_HIMNO = 7;
+    private static final String TEXT_HIMNO = "text_himno";
+    private static final String TEXT_SIZE = "text_size";
 
     private TextView textHimno;
     private TextView numberHimno;
@@ -66,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
 
         limit = NEW_LIMIT;
         numString = "";
-        textSize = DEFAULT_TEXT_SIZE;
+        textSize = 20;
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         if (toolbar != null) {
@@ -111,13 +113,13 @@ public class MainActivity extends AppCompatActivity {
         dbAdapter.close();
     }
 
-    private void adsMethod(){
+    private void adsMethod() {
         adView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
         adView.loadAd(adRequest);
     }
 
-    private void analitycsMethod(){
+    private void analitycsMethod() {
         HiadApplication application = (HiadApplication) getApplication();
         tracker = application.getDefaultracker();
 
@@ -132,6 +134,9 @@ public class MainActivity extends AppCompatActivity {
         outState.putString(CURRENT_TEXT_NUMBER, numberHimno.getText().toString());
         outState.putString(TOOLBAR_PANEL_TITLE, numberHimno.getText().toString());
         outState.putString(NUM_STRING, numString);
+        outState.putString(TEXT_HIMNO, textHimno.getText().toString());
+        outState.putInt(NUMERO, numero);
+        outState.putFloat(TEXT_SIZE, textSize);
         Log.i(TAG, "save instance: " + outState.toString());
     }
 
@@ -353,7 +358,10 @@ public class MainActivity extends AppCompatActivity {
             }
             toolbarPanel.setTitle(savedInstanceState.getString(TOOLBAR_PANEL_TITLE));
             numString = savedInstanceState.getString(NUM_STRING);
-
+            textHimno.setText(savedInstanceState.getString(TEXT_HIMNO));
+            numero = savedInstanceState.getInt(NUMERO);
+            textSize = savedInstanceState.getFloat(TEXT_SIZE);
+            textHimno.setTextSize(textSize);
         }
     }
 

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -8,8 +7,8 @@
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar_panel"
         android:layout_width="match_parent"
-        android:background="?attr/colorPrimary"
         android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
         android:minHeight="?attr/actionBarSize"
         android:theme="@style/AppThemeToolbar" />
 
@@ -17,29 +16,12 @@
         android:id="@+id/scroll_himno"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
         <TextView
             android:id="@+id/text_himno"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="@dimen/activity_vertical_margin"
-            android:text="
-1.\n
-Cantad alegres al Señor,\n
-mortales todos por doquier;\n
-servidle siempre con fervor,\n
-obedecedle con placer.\n
-2.\n
-Con gratitud canción alzad\n
-al Hacedor que el ser os dio;\n
-al Dios excelso venerad,\n
-que como Padre nos amó.\n
-3.\n
-Su pueblo somos: salvará\n
-a los que busquen al Señor;\n
-ninguno de ellos dejará;\n
-él los ampara con su amor.\n
-
-" />
+            android:padding="@dimen/activity_vertical_margin" />
     </ScrollView>
 
 </LinearLayout>
