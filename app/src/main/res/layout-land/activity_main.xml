@@ -10,7 +10,6 @@
     android:orientation="vertical"
     apps:umanoDragView="@+id/toolbar_panel"
     apps:umanoPanelHeight="0dp"
-    apps:umanoScrollableView="@+id/scroll_himno"
     apps:umanoShadowHeight="4dp"
     tools:context=".MainActivity">
 
@@ -32,6 +31,7 @@
                 android:paddingLeft="16dp"
                 android:paddingRight="64dp"
                 android:singleLine="true"
+                android:textColor="@android:color/black"
                 android:textSize="20sp" />
 
             <TextView
@@ -43,6 +43,7 @@
                 android:paddingRight="56dp"
                 android:singleLine="true"
                 android:text="@string/placeholder_himno"
+                android:textColor="#b3b3b3"
                 android:textSize="20sp" />
 
             <ImageButton

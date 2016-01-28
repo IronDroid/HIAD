@@ -91,7 +91,7 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
         searchView.setIconifiedByDefault(false);
         searchView.setOnQueryTextListener(this);
         searchView.setSubmitButtonEnabled(false);
-        searchView.setQueryHint("Titulo del himno");
+        searchView.setQueryHint("Título del himno");
         searchView.requestFocus();
         return super.onCreateOptionsMenu(menu);
     }

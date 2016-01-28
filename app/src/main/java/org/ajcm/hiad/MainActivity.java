@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -29,7 +30,7 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String TAG = MainActivity.class.getSimpleName();
+    private static final String TAG = "MainActivity";
     private static final String CURRENT_TEXT_NUMBER = "current_text_number";
     private static final String APP_PNAME = "org.ajcm.hiad";
     private static final String TOOLBAR_PANEL_TITLE = "toolbar_panel_title";
@@ -89,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onLongClick(View view) {
                 numberHimno.setText("");
-                placeholderHimno.setText(R.string.placeholder_himno);
+                setPlaceholderHimno();
                 numero = 0;
                 numString = "";
                 return true;
@@ -99,6 +100,10 @@ public class MainActivity extends AppCompatActivity {
         String[] textos = getResources().getStringArray(R.array.textos_alabanza);
         int random = new Random().nextInt(textos.length);
         ((TextView) findViewById(R.id.texto_alabanza)).setText(textos[random]);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+            getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimary));
+        }
 
         restoreDataSaved(savedInstanceState);
     }
@@ -170,11 +175,20 @@ public class MainActivity extends AppCompatActivity {
                 numberHimno.setText("");
                 numString = "";
                 numero = 0;
-                placeholderHimno.setText(R.string.placeholder_himno);
+                setPlaceholderHimno();
                 return true;
 
             case R.id.action_rate:
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + APP_PNAME)));
+                return true;
+
+            case R.id.action_share:
+                Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+                sharingIntent.setType("text/plain");
+                sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Tu Himnario Adventista");
+
+                sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, "https://play.google.com/store/apps/details?id="+APP_PNAME);
+                startActivity(Intent.createChooser(sharingIntent, "Compartir via..."));
                 return true;
 
             case R.id.action_about:
@@ -324,7 +338,7 @@ public class MainActivity extends AppCompatActivity {
                 numero = Integer.parseInt(numString);
             } else {
                 numero = 0;
-                placeholderHimno.setText(R.string.placeholder_himno);
+                setPlaceholderHimno();
             }
         }
     }
@@ -344,7 +358,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             // mostrar placeholder
             numberHimno.setText("");
-            placeholderHimno.setText(R.string.placeholder_himno);
+            setPlaceholderHimno();
         }
     }
 
@@ -354,7 +368,7 @@ public class MainActivity extends AppCompatActivity {
             if (numberHimno.getText().toString().length() > 0) {
                 placeholderHimno.setText("");
             } else {
-                placeholderHimno.setText(R.string.placeholder_himno);
+                setPlaceholderHimno();
             }
             toolbarPanel.setTitle(savedInstanceState.getString(TOOLBAR_PANEL_TITLE));
             numString = savedInstanceState.getString(NUM_STRING);
@@ -389,19 +403,11 @@ public class MainActivity extends AppCompatActivity {
         upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
     }
 
-    private String letra = "1.\\n\n" +
-            "Cantad alegres al Señor,\\n\n" +
-            "mortales todos por doquier;\\n\n" +
-            "servidle siempre con fervor,\\n\n" +
-            "obedecedle con placer.\\n\n" +
-            "2.\\n\n" +
-            "Con gratitud canción alzad\\n\n" +
-            "al Hacedor que el ser os dio;\\n\n" +
-            "al Dios excelso venerad,\\n\n" +
-            "que como Padre nos amó.\\n\n" +
-            "3.\\n\n" +
-            "Su pueblo somos: salvará\\n\n" +
-            "a los que busquen al Señor;\\n\n" +
-            "ninguno de ellos dejará;\\n\n" +
-            "él los ampara con su amor.\\n";
+    private void setPlaceholderHimno(){
+        if (versionHimno){
+            placeholderHimno.setText(R.string.placeholder_himno_old);
+        } else {
+            placeholderHimno.setText(R.string.placeholder_himno);
+        }
+    }
 }

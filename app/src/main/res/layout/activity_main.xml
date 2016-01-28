@@ -10,7 +10,6 @@
     android:orientation="vertical"
     apps:umanoDragView="@+id/toolbar_panel"
     apps:umanoPanelHeight="0dp"
-    apps:umanoScrollableView="@+id/scroll_himno"
     apps:umanoShadowHeight="4dp"
     tools:context=".MainActivity">
 

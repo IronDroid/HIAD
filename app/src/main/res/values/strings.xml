@@ -6,7 +6,9 @@
     <string name="plus_size_string">Aumentar tamaño</string>
     <string name="action_search">Busqueda de himnos</string>
     <string name="placeholder_himno">Número de Himno</string>
+    <string name="placeholder_himno_old">Número de Himno (Antiguo)</string>
     <string name="rate_app">Calificar aplicación</string>
+    <string name="share_app">Compartir</string>
     <string name="version_himno">Antiguo</string>
 
     <string name="banner_ad_unit_id">ca-app-pub-5411285117883478/1817419345</string>

@@ -5,15 +5,18 @@
         android:icon="@drawable/ic_search_white_24dp"
         android:title="@string/himnos_list"
         app:showAsAction="ifRoom" />
-
     <item
-        android:id="@+id/action_rate"
-        android:title="@string/rate_app"
+        android:id="@+id/action_share"
+        android:title="@string/share_app"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_version_himno"
-        android:title="@string/version_himno"
         android:checkable="true"
+        android:title="@string/version_himno"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_rate"
+        android:title="@string/rate_app"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_about"

@@ -80,11 +80,11 @@ public class DBAdapter {
     }
 
     public Cursor getHimnoForTitle(String filter, boolean versionH) {
-        return db.query(tableVersion(versionH), null, DatabaseHelper.Columns.titulo.name() + " LIKE '%" + filter + "%'", null, null, null, DatabaseHelper.Columns.titulo.name() + " ASC");
+        return db.query(tableVersion(versionH), null, DatabaseHelper.Columns.indice.name() + " LIKE '%" + filter + "%'", null, null, null, DatabaseHelper.Columns.titulo.name() + " ASC");
     }
 
     public Cursor getAllHimnoASC(boolean versionH) {
-        return db.query(tableVersion(versionH), null, null, null, null, null, DatabaseHelper.Columns.titulo.name() + " ASC");
+        return db.query(tableVersion(versionH), null, null, null, null, null, DatabaseHelper.Columns.indice.name() + " ASC");
     }
 
     public DBAdapter open() throws SQLException {
