@@ -60,14 +60,14 @@
  public static <fields>;
 }
 
--keep class android.support.v4.app.** { *; }
--keep interface android.support.v4.app.** { *; }
+#-keep class android.support.v4.app.** { *; }
+#-keep interface android.support.v4.app.** { *; }
 ## The support library contains references to newer platform versions.
 ## Don't warn about those in case this app is linking against an older
 ## platform version. We know about them, and they are safe.
--dontwarn android.support.**
--dontwarn com.google.ads.**
--dontwarn com.google.analytics.**
+#-dontwarn android.support.**
+#-dontwarn com.google.ads.**
+#-dontwarn com.google.analytics.**
 
 ## If your project uses WebView with JS, uncomment the following
 ## and specify the fully qualified class name to the JavaScript interface

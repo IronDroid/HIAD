@@ -5,6 +5,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import org.ajcm.hiad.UserPreferences;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +22,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "himnario";
     private static final int DATABASE_VERSION = 1;
     private String pathDB;
+    private UserPreferences preferences;
 
     public enum Columns {
         numero, titulo, letra, indice
@@ -28,14 +31,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         this.context = context;
+        preferences = new UserPreferences(this.context);
         pathDB = "/data/data/" + context.getPackageName() + "/databases/" + DATABASE_NAME;
-        loadDB();
+        if (!preferences.getBoolean("copy")) {
+            loadDB();
+        }
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
         Log.e(TAG, "onCreate: ");
-        loadDB();
+        if (!preferences.getBoolean("copy")) {
+            loadDB();
+        }
     }
 
     @Override
@@ -49,7 +57,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void copydatabase(Context context) throws IOException {
         try {
             getReadableDatabase();
-        } catch (Exception ignored){
+        } catch (Exception ignored) {
         }
         InputStream input = context.getAssets().open("hiad2.db");
         OutputStream output = new FileOutputStream(pathDB);
@@ -62,6 +70,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         output.flush();
         output.close();
         input.close();
+        preferences.putBoolean("copy", true);
         Log.e(TAG, "copydatabase: ");
     }
 
