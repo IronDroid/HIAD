@@ -33,7 +33,7 @@
         <item name="android:focusable">true</item>
     </style>
 
-    <style name="AppCompat.Button.Flat.Common" parent="Base.TextAppearance.AppCompat.Button">
+    <style name="AppCompat.Button.Flat.Common" parent="Base.Widget.AppCompat.Button">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_weight">1</item>
