@@ -10,7 +10,22 @@
         android:layout_height="wrap_content"
         android:background="?attr/colorPrimary"
         android:minHeight="?attr/actionBarSize"
-        android:theme="@style/AppThemeToolbar" />
+        android:theme="@style/AppThemeToolbar">
+
+        <TextView
+            android:id="@+id/toolbar_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="marquee"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:marqueeRepeatLimit="1"
+            android:scrollHorizontally="true"
+            android:singleLine="true"
+            android:textSize="20dp"
+            android:text="to fit in the widget"
+            android:textColor="@color/whiteText" />
+    </android.support.v7.widget.Toolbar>
 
     <ScrollView
         android:id="@+id/scroll_himno"

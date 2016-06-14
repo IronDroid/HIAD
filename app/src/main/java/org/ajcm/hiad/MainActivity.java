@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView textHimno;
     private TextView numberHimno;
+    private TextView toolbarTitle;
     private TextView placeholderHimno;
     private SlidingUpPanelLayout upPanelLayout;
     private Toolbar toolbarPanel;
@@ -255,7 +256,7 @@ public class MainActivity extends AppCompatActivity {
                 numString = "" + numero;
                 upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
                 String titleShow = numString + ". " + himnos.get(numero - 1).getTitulo();
-                toolbarPanel.setTitle(titleShow);
+                toolbarTitle.setText(titleShow);
                 numberHimno.setText(titleShow);
                 textHimno.setText(himnos.get(numero - 1).getLetra());
             }
@@ -266,7 +267,7 @@ public class MainActivity extends AppCompatActivity {
         if (numero > 0) {
             upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
             String titleShow = numString + ". " + himnos.get(numero - 1).getTitulo();
-            toolbarPanel.setTitle(titleShow);
+            toolbarTitle.setText(titleShow);
             textHimno.setText(himnos.get(numero - 1).getLetra());
 
             Log.i(TAG, "Setting screen name: Himno");
@@ -381,8 +382,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupUpPanel() {
         textHimno.setTextSize(textSize);
+        toolbarTitle = (TextView) findViewById(R.id.toolbar_title);
         toolbarPanel = (Toolbar) findViewById(R.id.toolbar_panel);
-        toolbarPanel.inflateMenu(R.menu.menu_himno);
+//        toolbarPanel.inflateMenu(R.menu.menu_himno);
         toolbarPanel.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
