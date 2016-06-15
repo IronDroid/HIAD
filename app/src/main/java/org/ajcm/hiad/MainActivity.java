@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TEXT_HIMNO = "text_himno";
     private static final String TEXT_SIZE = "text_size";
 
-    private TextView textHimno;
+    private ZoomTextView textHimno;
     private TextView numberHimno;
     private TextView toolbarTitle;
     private TextView placeholderHimno;
@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         getData();
 
         numberHimno = (TextView) findViewById(R.id.number_himno);
-        textHimno = (TextView) findViewById(R.id.text_himno);
+        textHimno = (ZoomTextView) findViewById(R.id.text_himno);
         placeholderHimno = (TextView) findViewById(R.id.placeholder_himno);
 
         setupUpPanel();
@@ -371,17 +371,17 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 setPlaceholderHimno();
             }
-            toolbarPanel.setTitle(savedInstanceState.getString(TOOLBAR_PANEL_TITLE));
+            toolbarTitle.setText(savedInstanceState.getString(TOOLBAR_PANEL_TITLE));
             numString = savedInstanceState.getString(NUM_STRING);
             textHimno.setText(savedInstanceState.getString(TEXT_HIMNO));
             numero = savedInstanceState.getInt(NUMERO);
             textSize = savedInstanceState.getFloat(TEXT_SIZE);
-            textHimno.setTextSize(textSize);
+//            textHimno.setTextSize(textSize);
         }
     }
 
     private void setupUpPanel() {
-        textHimno.setTextSize(textSize);
+//        textHimno.setTextSize(textSize);
         toolbarTitle = (TextView) findViewById(R.id.toolbar_title);
         toolbarPanel = (Toolbar) findViewById(R.id.toolbar_panel);
 //        toolbarPanel.inflateMenu(R.menu.menu_himno);
@@ -391,11 +391,11 @@ public class MainActivity extends AppCompatActivity {
                 switch (item.getItemId()) {
                     case R.id.action_plus:
                         textSize += 1;
-                        textHimno.setTextSize(textSize);
+                        textHimno.setTextSize(textHimno.getTextSize()+1);
                         return true;
                     case R.id.action_minus:
                         textSize -= 1;
-                        textHimno.setTextSize(textSize);
+                        textHimno.setTextSize(textHimno.getTextSize()-1);
                         return true;
                 }
                 return false;
