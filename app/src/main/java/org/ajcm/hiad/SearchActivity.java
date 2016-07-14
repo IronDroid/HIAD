@@ -1,11 +1,10 @@
 package org.ajcm.hiad;
 
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
@@ -13,12 +12,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
+import com.google.firebase.analytics.FirebaseAnalytics;
 
 import org.ajcm.hiad.adapters.HimnoAdapter;
 import org.ajcm.hiad.dataset.DBAdapter;
@@ -26,7 +23,7 @@ import org.ajcm.hiad.models.Himno;
 
 import java.util.ArrayList;
 
-public class SearchActivity extends AppCompatActivity implements SearchView.OnQueryTextListener{
+public class SearchActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
 
     private static final String TAG = "SearchActivity";
     private ListView listView;
@@ -36,7 +33,7 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
     private String filter;
     private boolean versionHimno;
 
-    private Tracker tracker;
+    private FirebaseAnalytics firebaseAnalytics;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +50,7 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
         dbAdapter.open();
         versionHimno = getIntent().getBooleanExtra("version", false);
         Cursor himnoASC = dbAdapter.getAllHimnoASC(versionHimno);
-        while (himnoASC.moveToNext()){
+        while (himnoASC.moveToNext()) {
             himnos.add(Himno.fromCursor(himnoASC));
         }
         dbAdapter.close();
@@ -70,17 +67,12 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
         });
     }
 
-    private void analitycsMethod(){
+    private void analitycsMethod() {
         HiadApplication application = (HiadApplication) getApplication();
-        tracker = application.getDefaultracker();
+        firebaseAnalytics = FirebaseAnalytics.getInstance(this);
 
         Log.i(TAG, "Setting screen name: Main");
-        tracker.send(new HitBuilders.ScreenViewBuilder().build());
-        tracker.setScreenName("Search-Himno");
-        tracker.send(new HitBuilders.EventBuilder()
-                .setCategory("Action")
-                .setAction("SearchHimno")
-                .build());
+        firebaseAnalytics.setUserProperty("Search-Himno", "inicio");
     }
 
     @Override
@@ -117,12 +109,12 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
         dbAdapter.open();
         himnos = new ArrayList<>();
         Cursor himnoForTitle;
-        if (filter != null){
+        if (filter != null) {
             himnoForTitle = dbAdapter.getHimnoForTitle(filter, versionHimno);
         } else {
             himnoForTitle = dbAdapter.getAllHimnoASC(versionHimno);
         }
-        while (himnoForTitle.moveToNext()){
+        while (himnoForTitle.moveToNext()) {
             himnos.add(Himno.fromCursor(himnoForTitle));
         }
         dbAdapter.close();

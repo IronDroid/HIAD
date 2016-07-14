@@ -3,8 +3,7 @@ package org.ajcm.hiad;
 import android.app.Application;
 import android.os.SystemClock;
 
-import com.google.android.gms.analytics.GoogleAnalytics;
-import com.google.android.gms.analytics.Tracker;
+import com.google.android.gms.ads.MobileAds;
 
 import java.util.concurrent.TimeUnit;
 
@@ -13,19 +12,10 @@ import java.util.concurrent.TimeUnit;
  */
 public class HiadApplication extends Application {
 
-    private Tracker tracker;
-
     @Override
     public void onCreate() {
         super.onCreate();
         SystemClock.sleep(TimeUnit.SECONDS.toMillis(1));
-    }
-
-    synchronized public Tracker getDefaultracker(){
-        if (tracker == null){
-            GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
-            tracker = analytics.newTracker(R.xml.global_tracker);
-        }
-        return tracker;
+        MobileAds.initialize(getApplicationContext(), "ca-app-pub-5411285117883478~9340686141");
     }
 }

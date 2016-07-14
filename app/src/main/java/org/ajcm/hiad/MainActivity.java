@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -15,11 +16,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
-import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
+import com.google.android.gms.ads.MobileAds;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import org.ajcm.hiad.dataset.DBAdapter;
@@ -57,8 +60,11 @@ public class MainActivity extends AppCompatActivity {
     private static final int OLD_LIMIT = 527;
     private static final int NEW_LIMIT = 613;
 
+    private boolean toastClose;
+    private Toast toast;
+
     private AdView adView;
-    private Tracker tracker;
+    private FirebaseAnalytics analytics;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,10 +96,7 @@ public class MainActivity extends AppCompatActivity {
         backSpaceButton.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                numberHimno.setText("");
-                setPlaceholderHimno();
-                numero = 0;
-                numString = "";
+                cleanNum();
                 return true;
             }
         });
@@ -102,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
         int random = new Random().nextInt(textos.length);
         ((TextView) findViewById(R.id.texto_alabanza)).setText(textos[random]);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimary));
         }
 
@@ -126,12 +129,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void analitycsMethod() {
-        HiadApplication application = (HiadApplication) getApplication();
-        tracker = application.getDefaultracker();
+        analytics = FirebaseAnalytics.getInstance(this);
 
         Log.i(TAG, "Setting screen name: Main");
-        tracker.setScreenName("Activity~Main");
-        tracker.send(new HitBuilders.ScreenViewBuilder().build());
+        analytics.setUserProperty("Activity~Main", "inicio");
     }
 
     @Override
@@ -188,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
                 sharingIntent.setType("text/plain");
                 sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Tu Himnario Adventista");
 
-                sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, "https://play.google.com/store/apps/details?id="+APP_PNAME);
+                sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, "https://play.google.com/store/apps/details?id=" + APP_PNAME);
                 startActivity(Intent.createChooser(sharingIntent, "Compartir via..."));
                 return true;
 
@@ -215,7 +216,20 @@ public class MainActivity extends AppCompatActivity {
         if (upPanelLayout != null &&
                 (upPanelLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED ||
                         upPanelLayout.getPanelState() == SlidingUpPanelLayout.PanelState.ANCHORED)) {
-            upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+            if (!toastClose) {
+                toast = Toast.makeText(this, "Pulse de nuevo para salir.", Toast.LENGTH_LONG);
+                toast.show();
+                toastClose = true;
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        toastClose = false;
+                    }
+                }, 3500);
+            } else {
+                upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+                toast.cancel();
+            }
         } else {
             super.onBackPressed();
         }
@@ -263,6 +277,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void cleanNum(){
+        numberHimno.setText("");
+        setPlaceholderHimno();
+        numero = 0;
+        numString = "";
+    }
+
     public void numOk(View view) {
         if (numero > 0) {
             upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
@@ -271,11 +292,12 @@ public class MainActivity extends AppCompatActivity {
             textHimno.setText(himnos.get(numero - 1).getLetra());
 
             Log.i(TAG, "Setting screen name: Himno");
-            tracker.setScreenName("Show-Himno");
-            tracker.send(new HitBuilders.EventBuilder()
-                    .setCategory("Action")
-                    .setAction("ShowHimno")
-                    .build());
+            Bundle params = new Bundle();
+            params.putString("Category", "Action");
+            params.putString("Action", "ShowHimno");
+            analytics.logEvent("Show-Himno", params);
+
+            cleanNum();
         }
     }
 
@@ -391,11 +413,11 @@ public class MainActivity extends AppCompatActivity {
                 switch (item.getItemId()) {
                     case R.id.action_plus:
                         textSize += 1;
-                        textHimno.setTextSize(textHimno.getTextSize()+1);
+                        textHimno.setTextSize(textHimno.getTextSize() + 1);
                         return true;
                     case R.id.action_minus:
                         textSize -= 1;
-                        textHimno.setTextSize(textHimno.getTextSize()-1);
+                        textHimno.setTextSize(textHimno.getTextSize() - 1);
                         return true;
                 }
                 return false;
@@ -405,8 +427,8 @@ public class MainActivity extends AppCompatActivity {
         upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
     }
 
-    private void setPlaceholderHimno(){
-        if (versionHimno){
+    private void setPlaceholderHimno() {
+        if (versionHimno) {
             placeholderHimno.setText(R.string.placeholder_himno_old);
         } else {
             placeholderHimno.setText(R.string.placeholder_himno);

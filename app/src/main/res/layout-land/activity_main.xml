@@ -60,9 +60,9 @@
 
         <View
             android:layout_width="match_parent"
-            android:layout_height="2dp"
+            android:layout_height="4dp"
             android:layout_marginBottom="8dp"
-            android:background="@color/flat_pressed" />
+            android:background="@drawable/shadow" />
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -70,10 +70,10 @@
 
             <com.google.android.gms.ads.AdView
                 android:id="@+id/adView"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|right"
-                apps:adSize="BANNER"
+                apps:adSize="SMART_BANNER"
                 apps:adUnitId="@string/banner_ad_unit_id" />
 
             <LinearLayout
