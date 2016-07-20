@@ -2,11 +2,13 @@ package org.ajcm.hiad.dataset;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import org.ajcm.hiad.UserPreferences;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,22 +20,24 @@ import java.io.OutputStream;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String TAG = "DatabaseHelper";
+    private static final String VERSION_DB_PREF = "version_db";
     private Context context;
     private static final String DATABASE_NAME = "himnario";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     private String pathDB;
     private UserPreferences preferences;
 
     public enum Columns {
-        numero, titulo, letra, indice
+        numero, titulo, letra, file_size, indice
     }
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        Log.e(TAG, "DatabaseHelper: ");
         this.context = context;
         preferences = new UserPreferences(this.context);
         pathDB = "/data/data/" + context.getPackageName() + "/databases/" + DATABASE_NAME;
-        if (!preferences.getBoolean("copy")) {
+        if (!preferences.getBoolean("copy") ) {
             loadDB();
         }
     }
@@ -49,8 +53,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         Log.e(TAG, "onUpgrade: ");
-        db.execSQL("DROP TABLE IF EXISTS " + DBAdapter.DATABASE_TABLE_2008);
-        db.execSQL("DROP TABLE IF EXISTS " + DBAdapter.DATABASE_TABLE_1962);
         onCreate(db);
     }
 
@@ -78,7 +80,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase checkDB;
         try {
             checkDB = SQLiteDatabase.openDatabase(pathDB, null, SQLiteDatabase.OPEN_READONLY);
-        } catch (Exception e) {
+        } catch (SQLiteException e) {
             Log.e(TAG, "checkDataBase: false");
             return false;
         }
@@ -89,6 +91,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         Log.e(TAG, "checkDataBase: false");
         return false;
+    }
+
+    public void checkUpdate(){
+        if (preferences.getInt(VERSION_DB_PREF) < DATABASE_VERSION){
+            File dbFile = new File(pathDB);
+            Log.e(TAG, "onUpgrade: delete DB " + dbFile.delete());
+            preferences.putBoolean("copy", false);
+            loadDB();
+            preferences.putInt(VERSION_DB_PREF, DATABASE_VERSION);
+        }
     }
 
     public void loadDB() {

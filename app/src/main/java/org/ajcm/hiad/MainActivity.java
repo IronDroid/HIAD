@@ -19,9 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.MobileAds;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
@@ -83,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
             setSupportActionBar(toolbar);
         }
 
-        dbAdapter = new DBAdapter(this);
+        dbAdapter = new DBAdapter(getApplicationContext());
         getData();
 
         numberHimno = (TextView) findViewById(R.id.number_himno);
@@ -132,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
         analytics = FirebaseAnalytics.getInstance(this);
 
         Log.i(TAG, "Setting screen name: Main");
-        analytics.setUserProperty("Activity~Main", "inicio");
+        analytics.setUserProperty("Activity_Main", "inicio");
     }
 
     @Override
@@ -168,6 +166,10 @@ public class MainActivity extends AppCompatActivity {
                     limit = NEW_LIMIT;
                     item.setChecked(false);
                 } else {
+                    Bundle params = new Bundle();
+                    params.putString("Category", "Action");
+                    params.putString("Action", "Version_Antiguo");
+                    analytics.logEvent("Change_version", params);
                     // himanrio antiguo
                     versionHimno = true;
                     limit = OLD_LIMIT;
@@ -277,7 +279,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void cleanNum(){
+    private void cleanNum() {
         numberHimno.setText("");
         setPlaceholderHimno();
         numero = 0;
@@ -291,11 +293,11 @@ public class MainActivity extends AppCompatActivity {
             toolbarTitle.setText(titleShow);
             textHimno.setText(himnos.get(numero - 1).getLetra());
 
-            Log.i(TAG, "Setting screen name: Himno");
+            Log.i(TAG, "Setting screen name: Himno " + himnos.get(numero - 1).getSize());
             Bundle params = new Bundle();
             params.putString("Category", "Action");
             params.putString("Action", "ShowHimno");
-            analytics.logEvent("Show-Himno", params);
+            analytics.logEvent("Show_Himno", params);
 
             cleanNum();
         }

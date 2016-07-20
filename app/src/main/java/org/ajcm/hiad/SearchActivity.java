@@ -68,9 +68,7 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
     }
 
     private void analitycsMethod() {
-        HiadApplication application = (HiadApplication) getApplication();
         firebaseAnalytics = FirebaseAnalytics.getInstance(this);
-
         Log.i(TAG, "Setting screen name: Main");
         firebaseAnalytics.setUserProperty("Search-Himno", "inicio");
     }
