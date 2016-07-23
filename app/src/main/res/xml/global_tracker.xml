@@ -4,6 +4,6 @@
     <bool name="ga_autoActivityTracking">true</bool>
     <bool name="ga_reportUncaughtExceptions">true</bool>
 
-    <screenName name="org.ajcm.hiad.MainActivity">Main Activity</screenName>
-    <screenName name="org.ajcm.hiad.SearchActivity">Search Activity</screenName>
+    <screenName name="org.ajcm.hiad.activities.MainActivity">Main Activity</screenName>
+    <screenName name="org.ajcm.hiad.activities.SearchActivity">Search Activity</screenName>
 </resources>

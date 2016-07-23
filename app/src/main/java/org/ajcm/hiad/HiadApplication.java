@@ -2,9 +2,15 @@ package org.ajcm.hiad;
 
 import android.app.Application;
 import android.os.SystemClock;
+import android.support.annotation.NonNull;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
 
 import org.ajcm.hiad.dataset.DatabaseHelper;
 
@@ -20,11 +26,21 @@ public class HiadApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.e(TAG, "onCreate ");
         DatabaseHelper databaseHelper = new DatabaseHelper(getApplicationContext());
-        Log.e(TAG, "checkUpdate: ");
         databaseHelper.checkUpdate();
-        SystemClock.sleep(TimeUnit.SECONDS.toMillis(1));
         MobileAds.initialize(getApplicationContext(), "ca-app-pub-5411285117883478~9340686141");
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        auth.signInAnonymously().addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+            @Override
+            public void onSuccess(AuthResult authResult) {
+                Toast.makeText(HiadApplication.this, "Autenticado", Toast.LENGTH_SHORT).show();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(HiadApplication.this, "NO Autenticado", Toast.LENGTH_SHORT).show();
+            }
+        });
+//        SystemClock.sleep(TimeUnit.SECONDS.toMillis(1));
     }
 }

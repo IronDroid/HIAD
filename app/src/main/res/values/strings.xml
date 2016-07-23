@@ -12,4 +12,7 @@
     <string name="version_himno">Antiguo</string>
     <string name="banner_ad_unit_id">ca-app-pub-5411285117883478/1817419345</string>
     <string name="banner_ad_unit_id_land">ca-app-pub-5411285117883478/2814644541</string>
+    <string name="about_music">Musicas</string>
+    <string name="play_string">Reproducir</string>
+    <string name="download_string">Descargar</string>
 </resources>

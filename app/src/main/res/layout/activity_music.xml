@@ -4,13 +4,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".activities.SearchActivity">
+    tools:context=".activities.MusicActivity">
 
     <include layout="@layout/toolbar" />
 
-    <ListView
-        android:id="@+id/listView"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/music_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-
 </LinearLayout>

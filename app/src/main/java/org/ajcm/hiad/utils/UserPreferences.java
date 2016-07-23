@@ -1,4 +1,4 @@
-package org.ajcm.hiad;
+package org.ajcm.hiad.utils;
 
 
 import android.content.Context;

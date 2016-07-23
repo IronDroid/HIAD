@@ -76,6 +76,7 @@ public class DBAdapter {
     }
 
     public Cursor getAllHimno(boolean versionH) {
+        open();
         return db.query(tableVersion(versionH), null, null, null, null, null, null);
     }
 

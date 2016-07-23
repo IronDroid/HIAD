@@ -1,4 +1,4 @@
-package org.ajcm.hiad;
+package org.ajcm.hiad.views;
 
 import android.content.Context;
 import android.support.annotation.NonNull;

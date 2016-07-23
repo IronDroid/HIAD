@@ -22,21 +22,27 @@
             android:marqueeRepeatLimit="1"
             android:scrollHorizontally="true"
             android:singleLine="true"
-            android:textSize="20dp"
-            android:textColor="@color/whiteText" />
+            android:textColor="@color/whiteText"
+            android:textSize="20dp" />
     </android.support.v7.widget.Toolbar>
 
     <ScrollView
         android:id="@+id/scroll_himno"
+        android:layout_weight="1"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp">
 
-        <org.ajcm.hiad.ZoomTextView
+        <org.ajcm.hiad.views.ZoomTextView
             android:id="@+id/text_himno"
             android:layout_width="match_parent"
-            android:textSize="20dp"
             android:layout_height="match_parent"
-            android:padding="@dimen/activity_vertical_margin" />
+            android:padding="@dimen/activity_vertical_margin"
+            android:textSize="20dp" />
     </ScrollView>
 
+    <SeekBar
+        android:visibility="gone"
+        android:id="@+id/seek_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 </LinearLayout>

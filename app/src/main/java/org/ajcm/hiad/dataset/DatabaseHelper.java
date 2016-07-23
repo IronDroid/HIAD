@@ -6,7 +6,7 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import org.ajcm.hiad.UserPreferences;
+import org.ajcm.hiad.utils.UserPreferences;
 
 import java.io.File;
 import java.io.FileOutputStream;

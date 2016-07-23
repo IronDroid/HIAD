@@ -1,12 +1,16 @@
-package org.ajcm.hiad;
+package org.ajcm.hiad.activities;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.media.MediaPlayer;
+import android.media.TimedMetaData;
+import android.media.TimedText;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -15,6 +19,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,9 +28,14 @@ import com.google.android.gms.ads.AdView;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import org.ajcm.hiad.R;
+import org.ajcm.hiad.utils.FileUtils;
+import org.ajcm.hiad.views.ZoomTextView;
 import org.ajcm.hiad.dataset.DBAdapter;
 import org.ajcm.hiad.models.Himno;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -63,6 +73,8 @@ public class MainActivity extends AppCompatActivity {
 
     private AdView adView;
     private FirebaseAnalytics analytics;
+
+    private MediaPlayer mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,7 +120,30 @@ public class MainActivity extends AppCompatActivity {
         }
 
         restoreDataSaved(savedInstanceState);
+
+        mediaPlayer = new MediaPlayer();
+        seekBar = (SeekBar) findViewById(R.id.seek_bar);
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    Log.e(TAG, "onProgressChanged: " + progress + fromUser);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                Log.e(TAG, "onStartTrackingTouch: " + seekBar.getProgress());
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                Log.e(TAG, "onStopTrackingTouch: " + seekBar.getProgress());
+            }
+        });
     }
+
+    private SeekBar seekBar;
 
     private void getData() {
         dbAdapter.open();
@@ -142,7 +177,6 @@ public class MainActivity extends AppCompatActivity {
         outState.putString(TEXT_HIMNO, textHimno.getText().toString());
         outState.putInt(NUMERO, numero);
         outState.putFloat(TEXT_SIZE, textSize);
-        Log.i(TAG, "save instance: " + outState.toString());
     }
 
     @Override
@@ -193,6 +227,10 @@ public class MainActivity extends AppCompatActivity {
 
                 sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, "https://play.google.com/store/apps/details?id=" + APP_PNAME);
                 startActivity(Intent.createChooser(sharingIntent, "Compartir via..."));
+                return true;
+
+            case R.id.action_music:
+                startActivity(new Intent(MainActivity.this, MusicActivity.class));
                 return true;
 
             case R.id.action_about:
@@ -275,6 +313,14 @@ public class MainActivity extends AppCompatActivity {
                 toolbarTitle.setText(titleShow);
                 numberHimno.setText(titleShow);
                 textHimno.setText(himnos.get(numero - 1).getLetra());
+
+                if (FileUtils.isHimnoDownloaded(getApplicationContext(), numero)) {
+                    toolbarPanel.getMenu().getItem(0).setVisible(true);
+                    toolbarPanel.getMenu().getItem(1).setVisible(false);
+                } else {
+                    toolbarPanel.getMenu().getItem(0).setVisible(false);
+                    toolbarPanel.getMenu().getItem(1).setVisible(true);
+                }
             }
         }
     }
@@ -293,13 +339,22 @@ public class MainActivity extends AppCompatActivity {
             toolbarTitle.setText(titleShow);
             textHimno.setText(himnos.get(numero - 1).getLetra());
 
+            if (FileUtils.isHimnoDownloaded(getApplicationContext(), numero)) {
+                toolbarPanel.getMenu().getItem(0).setVisible(true);
+                toolbarPanel.getMenu().getItem(1).setVisible(false);
+            } else {
+                toolbarPanel.getMenu().getItem(0).setVisible(false);
+                toolbarPanel.getMenu().getItem(1).setVisible(true);
+            }
+
             Log.i(TAG, "Setting screen name: Himno " + himnos.get(numero - 1).getSize());
             Bundle params = new Bundle();
             params.putString("Category", "Action");
             params.putString("Action", "ShowHimno");
             analytics.logEvent("Show_Himno", params);
 
-            cleanNum();
+            numberHimno.setText("");
+            setPlaceholderHimno();
         }
     }
 
@@ -404,22 +459,48 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private Handler mHandler = new Handler();
+
     private void setupUpPanel() {
 //        textHimno.setTextSize(textSize);
         toolbarTitle = (TextView) findViewById(R.id.toolbar_title);
         toolbarPanel = (Toolbar) findViewById(R.id.toolbar_panel);
-//        toolbarPanel.inflateMenu(R.menu.menu_himno);
+        toolbarPanel.inflateMenu(R.menu.menu_himno);
         toolbarPanel.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()) {
-                    case R.id.action_plus:
-                        textSize += 1;
-                        textHimno.setTextSize(textHimno.getTextSize() + 1);
+                    case R.id.action_play:
+                        Log.e(TAG, "onMenuItemClick: PLAY");
+                        String himnoPath = FileUtils.getDirHimnos(getApplicationContext()).getAbsoluteFile() + "/" + FileUtils.getStringNumber(numero) + ".ogg";
+                        Log.e(TAG, "onMenuItemClick: " + himnoPath);
+                        mediaPlayer.reset();
+                        mediaPlayer.release();
+                        mediaPlayer = new MediaPlayer();
+                        try {
+                            mediaPlayer.setDataSource(himnoPath);
+                            mediaPlayer.prepare();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        mediaPlayer.start();
+                        seekBar.setVisibility(View.VISIBLE);
+                        seekBar.setMax(mediaPlayer.getDuration() / 100);
+                        Log.e(TAG, "max: " + mediaPlayer.getDuration());
+                        Runnable runnable = new Runnable() {
+                            @Override
+                            public void run() {
+                                if (mediaPlayer.isPlaying()) {
+                                    int mCurrentPosition = mediaPlayer.getCurrentPosition() / 100;
+                                    seekBar.setProgress(mCurrentPosition);
+                                    mHandler.postDelayed(this, 100);
+                                }
+                            }
+                        };
+                        runOnUiThread(runnable);
                         return true;
-                    case R.id.action_minus:
-                        textSize -= 1;
-                        textHimno.setTextSize(textHimno.getTextSize() - 1);
+                    case R.id.action_download:
+                        Log.e(TAG, "onMenuItemClick: DOWNLOAD");
                         return true;
                 }
                 return false;
@@ -427,6 +508,35 @@ public class MainActivity extends AppCompatActivity {
         });
         upPanelLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
         upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+        upPanelLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
+            @Override
+            public void onPanelSlide(View panel, float slideOffset) {
+
+            }
+
+            @Override
+            public void onPanelCollapsed(View panel) {
+                cleanNum();
+                Log.e(TAG, "onPanelCollapsed: ");
+                mediaPlayer.stop();
+                seekBar.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onPanelExpanded(View panel) {
+                Log.e(TAG, "onPanelExpanded: ");
+            }
+
+            @Override
+            public void onPanelAnchored(View panel) {
+                Log.e(TAG, "onPanelAnchored: ");
+            }
+
+            @Override
+            public void onPanelHidden(View panel) {
+                Log.e(TAG, "onPanelHidden: ");
+            }
+        });
     }
 
     private void setPlaceholderHimno() {

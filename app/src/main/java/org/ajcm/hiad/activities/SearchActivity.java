@@ -1,4 +1,4 @@
-package org.ajcm.hiad;
+package org.ajcm.hiad.activities;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -17,6 +17,7 @@ import android.widget.ListView;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 
+import org.ajcm.hiad.R;
 import org.ajcm.hiad.adapters.HimnoAdapter;
 import org.ajcm.hiad.dataset.DBAdapter;
 import org.ajcm.hiad.models.Himno;
