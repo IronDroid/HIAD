@@ -33,14 +33,11 @@ public class HiadApplication extends Application {
         auth.signInAnonymously().addOnSuccessListener(new OnSuccessListener<AuthResult>() {
             @Override
             public void onSuccess(AuthResult authResult) {
-                Toast.makeText(HiadApplication.this, "Autenticado", Toast.LENGTH_SHORT).show();
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                Toast.makeText(HiadApplication.this, "NO Autenticado", Toast.LENGTH_SHORT).show();
             }
         });
-//        SystemClock.sleep(TimeUnit.SECONDS.toMillis(1));
     }
 }

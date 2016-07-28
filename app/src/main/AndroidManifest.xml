@@ -25,7 +25,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.MusicActivity"></activity>
+        <activity android:name=".activities.MusicActivity"/>
+        <service
+            android:name=".MediaListenService"
+            android:enabled="true" />
     </application>
 
 </manifest>

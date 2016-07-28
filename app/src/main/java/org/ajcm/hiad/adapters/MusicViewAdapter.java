@@ -2,6 +2,7 @@ package org.ajcm.hiad.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -10,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
@@ -106,6 +108,11 @@ public class MusicViewAdapter extends RecyclerView.Adapter<MusicViewAdapter.View
                             holder.progressBar.setVisibility(View.GONE);
                             holder.musicProcent.setVisibility(View.GONE);
                             holder.musicSize.setText(humanReadableByteCount(himno.getSize()) + " - Descargado");
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.e(TAG, "onFailure: ", e);
                         }
                     });
                 } else {

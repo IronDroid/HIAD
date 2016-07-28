@@ -1,17 +1,22 @@
 package org.ajcm.hiad.activities;
 
+import android.app.ActivityManager;
 import android.app.AlertDialog;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.database.Cursor;
-import android.media.MediaPlayer;
-import android.media.TimedMetaData;
-import android.media.TimedText;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
+import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -19,27 +24,35 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
+import com.google.firebase.storage.StorageReference;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import org.ajcm.hiad.MediaListenService;
 import org.ajcm.hiad.R;
-import org.ajcm.hiad.utils.FileUtils;
-import org.ajcm.hiad.views.ZoomTextView;
 import org.ajcm.hiad.dataset.DBAdapter;
 import org.ajcm.hiad.models.Himno;
+import org.ajcm.hiad.utils.FileUtils;
+import org.ajcm.hiad.views.ZoomTextView;
 
 import java.io.File;
-import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuItemClickListener {
 
     private static final String TAG = "MainActivity";
     private static final String CURRENT_TEXT_NUMBER = "current_text_number";
@@ -50,6 +63,12 @@ public class MainActivity extends AppCompatActivity {
     private static final int SEARCH_HIMNO = 7;
     private static final String TEXT_HIMNO = "text_himno";
     private static final String TEXT_SIZE = "text_size";
+
+    public static final int ERROR_STATUS = -1;
+    public static final int INIT_STATUS = 0;
+    public static final int PLAY_STATUS = 1;
+    public static final int PAUSE_STATUS = 2;
+    public static final int STOP_STATUS = 3;
 
     private ZoomTextView textHimno;
     private TextView numberHimno;
@@ -73,8 +92,15 @@ public class MainActivity extends AppCompatActivity {
 
     private AdView adView;
     private FirebaseAnalytics analytics;
+    private SeekBar seekBar;
 
-    private MediaPlayer mediaPlayer;
+    private ComponentName service_component_name;
+    private Intent intentService;
+    private Class<?> serviceClass = null;
+    private boolean isBound;
+    private Messenger mService;
+    final Messenger mMessenger = new Messenger(new IncomingHandler(this));
+    int service_status = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,9 +145,6 @@ public class MainActivity extends AppCompatActivity {
             getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimary));
         }
 
-        restoreDataSaved(savedInstanceState);
-
-        mediaPlayer = new MediaPlayer();
         seekBar = (SeekBar) findViewById(R.id.seek_bar);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -141,9 +164,15 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(TAG, "onStopTrackingTouch: " + seekBar.getProgress());
             }
         });
-    }
 
-    private SeekBar seekBar;
+        restoreDataSaved(savedInstanceState);
+
+        if (isServiceRunning() != null) {
+            Handler runDelayedHandler = new Handler();
+            runDelayedHandler.postDelayed(runDelayed, 500);
+            doBindService();
+        }
+    }
 
     private void getData() {
         dbAdapter.open();
@@ -163,20 +192,18 @@ public class MainActivity extends AppCompatActivity {
 
     private void analitycsMethod() {
         analytics = FirebaseAnalytics.getInstance(this);
-
-        Log.i(TAG, "Setting screen name: Main");
-        analytics.setUserProperty("Activity_Main", "inicio");
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(CURRENT_TEXT_NUMBER, numberHimno.getText().toString());
-        outState.putString(TOOLBAR_PANEL_TITLE, numberHimno.getText().toString());
+        outState.putString(TOOLBAR_PANEL_TITLE, toolbarTitle.getText().toString());
         outState.putString(NUM_STRING, numString);
         outState.putString(TEXT_HIMNO, textHimno.getText().toString());
         outState.putInt(NUMERO, numero);
         outState.putFloat(TEXT_SIZE, textSize);
+        outState.putBoolean("seek_bar", seekBar.getVisibility() == View.VISIBLE);
     }
 
     @Override
@@ -280,6 +307,7 @@ public class MainActivity extends AppCompatActivity {
         if (adView != null) {
             adView.pause();
         }
+        doUnbindService();
         super.onPause();
     }
 
@@ -292,10 +320,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStop() {
+        if (isBound) {
+            doUnbindService();
+            isBound = false;
+            Log.e(TAG, "onStop: unbound");
+        }
+        super.onStop();
+    }
+
+    @Override
     public void onDestroy() {
         if (adView != null) {
             adView.destroy();
         }
+
         super.onDestroy();
     }
 
@@ -314,13 +353,7 @@ public class MainActivity extends AppCompatActivity {
                 numberHimno.setText(titleShow);
                 textHimno.setText(himnos.get(numero - 1).getLetra());
 
-                if (FileUtils.isHimnoDownloaded(getApplicationContext(), numero)) {
-                    toolbarPanel.getMenu().getItem(0).setVisible(true);
-                    toolbarPanel.getMenu().getItem(1).setVisible(false);
-                } else {
-                    toolbarPanel.getMenu().getItem(0).setVisible(false);
-                    toolbarPanel.getMenu().getItem(1).setVisible(true);
-                }
+                setUpPanelMenu();
             }
         }
     }
@@ -339,67 +372,11 @@ public class MainActivity extends AppCompatActivity {
             toolbarTitle.setText(titleShow);
             textHimno.setText(himnos.get(numero - 1).getLetra());
 
-            if (FileUtils.isHimnoDownloaded(getApplicationContext(), numero)) {
-                toolbarPanel.getMenu().getItem(0).setVisible(true);
-                toolbarPanel.getMenu().getItem(1).setVisible(false);
-            } else {
-                toolbarPanel.getMenu().getItem(0).setVisible(false);
-                toolbarPanel.getMenu().getItem(1).setVisible(true);
-            }
-
-            Log.i(TAG, "Setting screen name: Himno " + himnos.get(numero - 1).getSize());
-            Bundle params = new Bundle();
-            params.putString("Category", "Action");
-            params.putString("Action", "ShowHimno");
-            analytics.logEvent("Show_Himno", params);
+            setUpPanelMenu();
 
             numberHimno.setText("");
             setPlaceholderHimno();
         }
-    }
-
-    public void inputDelete(View view) {
-        menosUno();
-    }
-
-    public void number0(View view) {
-        masUno(0);
-    }
-
-    public void number9(View view) {
-        masUno(9);
-    }
-
-    public void number8(View view) {
-        masUno(8);
-    }
-
-    public void number7(View view) {
-        masUno(7);
-    }
-
-    public void number6(View view) {
-        masUno(6);
-    }
-
-    public void number5(View view) {
-        masUno(5);
-    }
-
-    public void number4(View view) {
-        masUno(4);
-    }
-
-    public void number3(View view) {
-        masUno(3);
-    }
-
-    public void number2(View view) {
-        masUno(2);
-    }
-
-    public void number1(View view) {
-        masUno(1);
     }
 
     public void masUno(int num) {
@@ -455,57 +432,26 @@ public class MainActivity extends AppCompatActivity {
             textHimno.setText(savedInstanceState.getString(TEXT_HIMNO));
             numero = savedInstanceState.getInt(NUMERO);
             textSize = savedInstanceState.getFloat(TEXT_SIZE);
-//            textHimno.setTextSize(textSize);
+            seekBar.setVisibility(savedInstanceState.getBoolean("seek_bar") ? View.VISIBLE : View.GONE);
+            setUpPanelMenu();
+            service_component_name = isServiceRunning();
+            if (service_component_name != null){
+                try {
+                    serviceClass = Class.forName(service_component_name.getClassName());
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+            intentService = new Intent(this, MediaListenService.class);
         }
     }
 
-    private Handler mHandler = new Handler();
-
     private void setupUpPanel() {
-//        textHimno.setTextSize(textSize);
         toolbarTitle = (TextView) findViewById(R.id.toolbar_title);
         toolbarPanel = (Toolbar) findViewById(R.id.toolbar_panel);
         toolbarPanel.inflateMenu(R.menu.menu_himno);
-        toolbarPanel.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.action_play:
-                        Log.e(TAG, "onMenuItemClick: PLAY");
-                        String himnoPath = FileUtils.getDirHimnos(getApplicationContext()).getAbsoluteFile() + "/" + FileUtils.getStringNumber(numero) + ".ogg";
-                        Log.e(TAG, "onMenuItemClick: " + himnoPath);
-                        mediaPlayer.reset();
-                        mediaPlayer.release();
-                        mediaPlayer = new MediaPlayer();
-                        try {
-                            mediaPlayer.setDataSource(himnoPath);
-                            mediaPlayer.prepare();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        mediaPlayer.start();
-                        seekBar.setVisibility(View.VISIBLE);
-                        seekBar.setMax(mediaPlayer.getDuration() / 100);
-                        Log.e(TAG, "max: " + mediaPlayer.getDuration());
-                        Runnable runnable = new Runnable() {
-                            @Override
-                            public void run() {
-                                if (mediaPlayer.isPlaying()) {
-                                    int mCurrentPosition = mediaPlayer.getCurrentPosition() / 100;
-                                    seekBar.setProgress(mCurrentPosition);
-                                    mHandler.postDelayed(this, 100);
-                                }
-                            }
-                        };
-                        runOnUiThread(runnable);
-                        return true;
-                    case R.id.action_download:
-                        Log.e(TAG, "onMenuItemClick: DOWNLOAD");
-                        return true;
-                }
-                return false;
-            }
-        });
+        toolbarPanel.setOnMenuItemClickListener(this);
+
         upPanelLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
         upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
         upPanelLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
@@ -516,25 +462,24 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onPanelCollapsed(View panel) {
+                if (isBound) {
+                    sendMessageToService(3);
+                    stopService(intentService);
+                }
                 cleanNum();
-                Log.e(TAG, "onPanelCollapsed: ");
-                mediaPlayer.stop();
                 seekBar.setVisibility(View.GONE);
             }
 
             @Override
             public void onPanelExpanded(View panel) {
-                Log.e(TAG, "onPanelExpanded: ");
             }
 
             @Override
             public void onPanelAnchored(View panel) {
-                Log.e(TAG, "onPanelAnchored: ");
             }
 
             @Override
             public void onPanelHidden(View panel) {
-                Log.e(TAG, "onPanelHidden: ");
             }
         });
     }
@@ -545,5 +490,262 @@ public class MainActivity extends AppCompatActivity {
         } else {
             placeholderHimno.setText(R.string.placeholder_himno);
         }
+    }
+
+    private void donwloadMusic(int numberInt) {
+        String number = FileUtils.getStringNumber(numberInt);
+
+        String url = "gs://tu-himnario-adventista.appspot.com";
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+        StorageReference reference = storage.getReferenceFromUrl(url);
+        StorageReference himnoRef = reference.child("himnos/" + number + ".ogg");
+
+        File dirHimnos = new File(getFilesDir().getAbsolutePath() + "/himnos/");
+        dirHimnos.mkdirs();
+
+        final TextView musicProcent = (TextView) findViewById(R.id.music_procent);
+        final ProgressBar progressBar = (ProgressBar) findViewById(R.id.music_progress);
+
+        File file = new File(dirHimnos.getAbsolutePath() + "/" + number + ".ogg");
+        if (!file.exists()) {
+            progressBar.setIndeterminate(true);
+            progressBar.setVisibility(View.VISIBLE);
+            musicProcent.setVisibility(View.VISIBLE);
+
+            himnoRef.getFile(file).addOnProgressListener(new OnProgressListener<FileDownloadTask.TaskSnapshot>() {
+                @Override
+                public void onProgress(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                    if (taskSnapshot.getBytesTransferred() > 1000) {
+                        progressBar.setProgress((int) (taskSnapshot.getBytesTransferred() * 100 / taskSnapshot.getTotalByteCount()));
+                        progressBar.setIndeterminate(false);
+                    }
+                    musicProcent.setText(progressBar.getProgress() + "%");
+                }
+            }).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                    progressBar.setVisibility(View.GONE);
+                    musicProcent.setVisibility(View.GONE);
+                    toolbarPanel.getMenu().getItem(0).setVisible(true);
+                    toolbarPanel.getMenu().getItem(1).setVisible(false);
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.e(TAG, "onFailure: ", e);
+                }
+            });
+        }
+    }
+
+    private void setUpPanelMenu() {
+        if (FileUtils.isHimnoDownloaded(getApplicationContext(), numero)) {
+            toolbarPanel.getMenu().getItem(0).setVisible(true);
+            toolbarPanel.getMenu().getItem(1).setVisible(false);
+        } else {
+            toolbarPanel.getMenu().getItem(0).setVisible(false);
+            toolbarPanel.getMenu().getItem(1).setVisible(true);
+        }
+    }
+
+    public void inputDelete(View view) {
+        menosUno();
+    }
+
+    public void number0(View view) {
+        masUno(0);
+    }
+
+    public void number9(View view) {
+        masUno(9);
+    }
+
+    public void number8(View view) {
+        masUno(8);
+    }
+
+    public void number7(View view) {
+        masUno(7);
+    }
+
+    public void number6(View view) {
+        masUno(6);
+    }
+
+    public void number5(View view) {
+        masUno(5);
+    }
+
+    public void number4(View view) {
+        masUno(4);
+    }
+
+    public void number3(View view) {
+        masUno(3);
+    }
+
+    public void number2(View view) {
+        masUno(2);
+    }
+
+    public void number1(View view) {
+        masUno(1);
+    }
+
+    @Override
+    public boolean onMenuItemClick(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_play:
+                Log.e(TAG, "action_play");
+                String himnoPath = FileUtils.getDirHimnos(getApplicationContext()).getAbsoluteFile() + "/" + FileUtils.getStringNumber(numero) + ".ogg";
+                initMediaService(himnoPath);
+                seekBar.setVisibility(View.VISIBLE);
+//                seekBar.setMax(mediaPlayer.getDuration() / 100);
+
+//                Runnable runnable = new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        if (mediaPlayer.isPlaying()) {
+//                            int mCurrentPosition = mediaPlayer.getCurrentPosition() / 100;
+//                            seekBar.setProgress(mCurrentPosition);
+//                            mHandler.postDelayed(this, 100);
+//                        }
+//                    }
+//                };
+//                runOnUiThread(runnable);
+                return true;
+            case R.id.action_download:
+                Log.e(TAG, "onMenuItemClick: DOWNLOAD");
+                donwloadMusic(numero);
+                return true;
+        }
+        return false;
+    }
+
+    private void initMediaService(String himnoPath) {
+        intentService = new Intent(this, MediaListenService.class);
+        intentService.putExtra("himno_path", himnoPath);
+        service_component_name = isServiceRunning();
+        if (service_component_name == null){
+            service_component_name = startService(intentService);
+        }
+        try {
+            serviceClass = Class.forName(service_component_name.getClassName());
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        Handler runDelayedHandler = new Handler();
+        runDelayedHandler.postDelayed(runDelayed, 500);
+        doBindService();
+        Log.e(TAG, "initMediaService: " + isServiceRunning());
+    }
+
+    Runnable runDelayed = new Runnable() {
+        public void run() {
+            //Log.e("DEBUG", "Called runDelayed");
+            // Query the service if it is running, but only if have not received error message
+            if (service_status >= 0) {
+                //Log.e("DEBUG", "runDelayed service_status >= 0");
+                sendMessageToService(100);
+            }
+        }
+    };
+
+    private void sendMessageToService(int intvaluetosend) {
+        if (!isBound)
+            doBindService();
+
+        if (isBound) {
+            try {
+                Message msg = Message.obtain(null, MediaListenService.MSG_SET_INT_VALUE, intvaluetosend, 0);
+                msg.replyTo = mMessenger;
+                mService.send(msg);
+            } catch (RemoteException e) {
+            }
+        }
+    }
+
+    private void doBindService() {
+        if (!isBound) {
+            // This is non-blocking and returns immediately, even if mConnection is not ready yet and mService is still NULL
+            Log.e(TAG, "doBindService: " + serviceClass);
+            Log.e(TAG, "doBindService: " + mConnection);
+            bindService(new Intent(this, serviceClass), mConnection, Context.BIND_AUTO_CREATE);
+            if (mService != null) {
+                try {
+                    Message msg = Message.obtain(null, MediaListenService.MSG_REGISTER_CLIENT);
+                    msg.replyTo = mMessenger;
+                    mService.send(msg);
+                } catch (RemoteException e) {
+                    // In this case the service has crashed before we could even do anything with it
+                }
+                isBound = true;
+                Log.e(TAG, "doBindService");
+            }
+        }
+    }
+
+    private void doUnbindService() {
+        if (isBound) {
+            // If we have received the service, and hence registered with it, then unregister
+            if (mService != null) {
+                try {
+                    Message msg = Message.obtain(null, MediaListenService.MSG_UNREGISTER_CLIENT);
+                    msg.replyTo = mMessenger;
+                    mService.send(msg);
+                } catch (RemoteException e) {
+                    // There is nothing special we need to do if the service has crashed.
+                }
+            }
+            // Detach our existing connection.
+            unbindService(mConnection);
+            isBound = false;
+        }
+    }
+
+    static class IncomingHandler extends Handler { // Handler of incoming messages from clients.
+        private final WeakReference<MainActivity> mService;
+
+        IncomingHandler(MainActivity service) {
+            mService = new WeakReference<>(service);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            MainActivity service = mService.get();
+            switch (msg.what) {
+                case MediaListenService.MSG_SET_INT_VALUE:
+                    if (msg.arg1 == 1) {
+                        service.seekBar.setMax(msg.arg2);
+                    } else if (msg.arg1 == 2) {
+                        service.seekBar.setProgress(msg.arg2);
+                    }
+                    break;
+                default:
+                    super.handleMessage(msg);
+            }
+        }
+    }
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            mService = new Messenger(service);
+            Log.e(TAG, "onServiceConnected: ");
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            // This is called when the connection with the service has been unexpectedly disconnected - process crashed.
+            mService = null;
+        }
+    };
+
+    private ComponentName isServiceRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if ("org.ajcm.hiad.MediaListenService".equals(service.service.getClassName())) {
+                return service.service;
+            }
+        }
+        return null;
     }
 }

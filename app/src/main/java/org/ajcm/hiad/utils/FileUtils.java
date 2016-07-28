@@ -24,6 +24,7 @@ public class FileUtils {
 
     public static File getDirHimnos(Context context){
         File dirHimnos = new File(context.getFilesDir().getAbsolutePath() + "/himnos/");
+        dirHimnos.mkdir();
         return dirHimnos;
     }
 
