@@ -13,9 +13,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
-import android.os.Messenger;
-import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -48,11 +45,10 @@ import org.ajcm.hiad.utils.FileUtils;
 import org.ajcm.hiad.views.ZoomTextView;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuItemClickListener {
+public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuItemClickListener, MediaListenService.MediaServiceCallbacks {
 
     private static final String TAG = "MainActivity";
     private static final String CURRENT_TEXT_NUMBER = "current_text_number";
@@ -63,12 +59,6 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
     private static final int SEARCH_HIMNO = 7;
     private static final String TEXT_HIMNO = "text_himno";
     private static final String TEXT_SIZE = "text_size";
-
-    public static final int ERROR_STATUS = -1;
-    public static final int INIT_STATUS = 0;
-    public static final int PLAY_STATUS = 1;
-    public static final int PAUSE_STATUS = 2;
-    public static final int STOP_STATUS = 3;
 
     private ZoomTextView textHimno;
     private TextView numberHimno;
@@ -94,13 +84,8 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
     private FirebaseAnalytics analytics;
     private SeekBar seekBar;
 
-    private ComponentName service_component_name;
     private Intent intentService;
-    private Class<?> serviceClass = null;
-    private boolean isBound;
-    private Messenger mService;
-    final Messenger mMessenger = new Messenger(new IncomingHandler(this));
-    int service_status = 0;
+    private MediaListenService listenService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -167,10 +152,11 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
 
         restoreDataSaved(savedInstanceState);
 
-        if (isServiceRunning() != null) {
-            Handler runDelayedHandler = new Handler();
-            runDelayedHandler.postDelayed(runDelayed, 500);
-            doBindService();
+        Log.e(TAG, "onCreate: " + isServiceRunning());
+        intentService = new Intent(this, MediaListenService.class);
+        if (!isServiceRunning()) {
+            startService(intentService); //Starting the service
+            bindService(intentService, mConnection, Context.BIND_AUTO_CREATE); //Binding to the service!
         }
     }
 
@@ -204,6 +190,7 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
         outState.putInt(NUMERO, numero);
         outState.putFloat(TEXT_SIZE, textSize);
         outState.putBoolean("seek_bar", seekBar.getVisibility() == View.VISIBLE);
+        outState.putInt("seek_max", seekBar.getMax());
     }
 
     @Override
@@ -307,7 +294,6 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
         if (adView != null) {
             adView.pause();
         }
-        doUnbindService();
         super.onPause();
     }
 
@@ -317,16 +303,6 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
         if (adView != null) {
             adView.resume();
         }
-    }
-
-    @Override
-    protected void onStop() {
-        if (isBound) {
-            doUnbindService();
-            isBound = false;
-            Log.e(TAG, "onStop: unbound");
-        }
-        super.onStop();
     }
 
     @Override
@@ -433,16 +409,8 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
             numero = savedInstanceState.getInt(NUMERO);
             textSize = savedInstanceState.getFloat(TEXT_SIZE);
             seekBar.setVisibility(savedInstanceState.getBoolean("seek_bar") ? View.VISIBLE : View.GONE);
+            seekBar.setMax(savedInstanceState.getInt("seek_max"));
             setUpPanelMenu();
-            service_component_name = isServiceRunning();
-            if (service_component_name != null){
-                try {
-                    serviceClass = Class.forName(service_component_name.getClassName());
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
-            }
-            intentService = new Intent(this, MediaListenService.class);
         }
     }
 
@@ -462,11 +430,8 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
 
             @Override
             public void onPanelCollapsed(View panel) {
-                if (isBound) {
-                    sendMessageToService(3);
-                    stopService(intentService);
-                }
                 cleanNum();
+                listenService.stopMedia();
                 seekBar.setVisibility(View.GONE);
             }
 
@@ -597,22 +562,8 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
         switch (item.getItemId()) {
             case R.id.action_play:
                 Log.e(TAG, "action_play");
-                String himnoPath = FileUtils.getDirHimnos(getApplicationContext()).getAbsoluteFile() + "/" + FileUtils.getStringNumber(numero) + ".ogg";
-                initMediaService(himnoPath);
                 seekBar.setVisibility(View.VISIBLE);
-//                seekBar.setMax(mediaPlayer.getDuration() / 100);
-
-//                Runnable runnable = new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        if (mediaPlayer.isPlaying()) {
-//                            int mCurrentPosition = mediaPlayer.getCurrentPosition() / 100;
-//                            seekBar.setProgress(mCurrentPosition);
-//                            mHandler.postDelayed(this, 100);
-//                        }
-//                    }
-//                };
-//                runOnUiThread(runnable);
+                listenService.playMedia(numero);
                 return true;
             case R.id.action_download:
                 Log.e(TAG, "onMenuItemClick: DOWNLOAD");
@@ -622,130 +573,71 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
         return false;
     }
 
-    private void initMediaService(String himnoPath) {
-        intentService = new Intent(this, MediaListenService.class);
-        intentService.putExtra("himno_path", himnoPath);
-        service_component_name = isServiceRunning();
-        if (service_component_name == null){
-            service_component_name = startService(intentService);
-        }
-        try {
-            serviceClass = Class.forName(service_component_name.getClassName());
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        Handler runDelayedHandler = new Handler();
-        runDelayedHandler.postDelayed(runDelayed, 500);
-        doBindService();
-        Log.e(TAG, "initMediaService: " + isServiceRunning());
-    }
+    private ServiceConnection mConnection = new ServiceConnection() {
 
-    Runnable runDelayed = new Runnable() {
-        public void run() {
-            //Log.e("DEBUG", "Called runDelayed");
-            // Query the service if it is running, but only if have not received error message
-            if (service_status >= 0) {
-                //Log.e("DEBUG", "runDelayed service_status >= 0");
-                sendMessageToService(100);
-            }
-        }
-    };
-
-    private void sendMessageToService(int intvaluetosend) {
-        if (!isBound)
-            doBindService();
-
-        if (isBound) {
-            try {
-                Message msg = Message.obtain(null, MediaListenService.MSG_SET_INT_VALUE, intvaluetosend, 0);
-                msg.replyTo = mMessenger;
-                mService.send(msg);
-            } catch (RemoteException e) {
-            }
-        }
-    }
-
-    private void doBindService() {
-        if (!isBound) {
-            // This is non-blocking and returns immediately, even if mConnection is not ready yet and mService is still NULL
-            Log.e(TAG, "doBindService: " + serviceClass);
-            Log.e(TAG, "doBindService: " + mConnection);
-            bindService(new Intent(this, serviceClass), mConnection, Context.BIND_AUTO_CREATE);
-            if (mService != null) {
-                try {
-                    Message msg = Message.obtain(null, MediaListenService.MSG_REGISTER_CLIENT);
-                    msg.replyTo = mMessenger;
-                    mService.send(msg);
-                } catch (RemoteException e) {
-                    // In this case the service has crashed before we could even do anything with it
-                }
-                isBound = true;
-                Log.e(TAG, "doBindService");
-            }
-        }
-    }
-
-    private void doUnbindService() {
-        if (isBound) {
-            // If we have received the service, and hence registered with it, then unregister
-            if (mService != null) {
-                try {
-                    Message msg = Message.obtain(null, MediaListenService.MSG_UNREGISTER_CLIENT);
-                    msg.replyTo = mMessenger;
-                    mService.send(msg);
-                } catch (RemoteException e) {
-                    // There is nothing special we need to do if the service has crashed.
-                }
-            }
-            // Detach our existing connection.
-            unbindService(mConnection);
-            isBound = false;
-        }
-    }
-
-    static class IncomingHandler extends Handler { // Handler of incoming messages from clients.
-        private final WeakReference<MainActivity> mService;
-
-        IncomingHandler(MainActivity service) {
-            mService = new WeakReference<>(service);
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            Log.e(TAG, "onService Connected");
+            // We've binded to LocalService, cast the IBinder and get LocalService instance
+            MediaListenService.LocalBinder binder = (MediaListenService.LocalBinder) service;
+            listenService = binder.getServiceInstance(); //Get instance of your service!
+            listenService.registerClient(MainActivity.this); //Activity register in the service as client for callabcks!
+//            tvServiceState.setText("Connected to service...");
+//            tbStartTask.setEnabled(true);
         }
 
         @Override
-        public void handleMessage(Message msg) {
-            MainActivity service = mService.get();
-            switch (msg.what) {
-                case MediaListenService.MSG_SET_INT_VALUE:
-                    if (msg.arg1 == 1) {
-                        service.seekBar.setMax(msg.arg2);
-                    } else if (msg.arg1 == 2) {
-                        service.seekBar.setProgress(msg.arg2);
-                    }
-                    break;
-                default:
-                    super.handleMessage(msg);
-            }
-        }
-    }
-
-    private ServiceConnection mConnection = new ServiceConnection() {
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            mService = new Messenger(service);
-            Log.e(TAG, "onServiceConnected: ");
-        }
-
-        public void onServiceDisconnected(ComponentName className) {
-            // This is called when the connection with the service has been unexpectedly disconnected - process crashed.
-            mService = null;
+        public void onServiceDisconnected(ComponentName arg0) {
+            Log.e(TAG, "onService Disconnected");
+//            tvServiceState.setText("Service disconnected");
+//            tbStartTask.setEnabled(false);
         }
     };
 
-    private ComponentName isServiceRunning() {
+    @Override
+    public void playMedia() {
+        Toast.makeText(MainActivity.this, "play", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void stopMedia() {
+        Toast.makeText(MainActivity.this, "stop", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void updateProgress(int mCurrentPosition) {
+        seekBar.setProgress(mCurrentPosition);
+    }
+
+    @Override
+    public void setMaxProgress(int duration) {
+        seekBar.setMax(duration);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+//        stopService(intentService);
+        unbindService(mConnection);
+        Log.e(TAG, "onStop: ");
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+//        startService(intentService); //Starting the service
+        bindService(intentService, mConnection, Context.BIND_AUTO_CREATE); //Binding to the service!
+        Log.e(TAG, "onStart: ");
+    }
+
+    private boolean isServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
             if ("org.ajcm.hiad.MediaListenService".equals(service.service.getClassName())) {
-                return service.service;
+                return true;
             }
         }
-        return null;
+        return false;
     }
 }
