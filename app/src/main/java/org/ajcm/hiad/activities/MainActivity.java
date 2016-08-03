@@ -42,7 +42,6 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import org.ajcm.hiad.MediaListenService;
 import org.ajcm.hiad.R;
-import org.ajcm.hiad.adapters.MusicViewAdapter;
 import org.ajcm.hiad.dataset.DBAdapter;
 import org.ajcm.hiad.models.Himno;
 import org.ajcm.hiad.utils.FileUtils;
@@ -106,6 +105,9 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
     private TextView musicProcent;
     private ProgressBar musicProgress;
 
+    private StorageReference reference;
+    private FileDownloadTask fileDownloadTask;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -159,6 +161,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 musicProcent.setVisibility(View.VISIBLE);
                 buttonCancel.setVisibility(View.VISIBLE);
                 buttonDonwload.setVisibility(View.GONE);
+                donwloadMusic(numero);
             }
         });
         buttonCancel = (ImageButton) findViewById(R.id.music_cancel);
@@ -168,13 +171,19 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 musicProcent.setVisibility(View.GONE);
                 buttonCancel.setVisibility(View.GONE);
                 buttonDonwload.setVisibility(View.VISIBLE);
+                fileDownloadTask.cancel();
+
+                String number = FileUtils.getStringNumber(numero);
+                File dirHimnos = new File(getFilesDir().getAbsolutePath() + "/himnos/");
+                File file = new File(dirHimnos.getAbsolutePath() + "/" + number + ".ogg");
+                Log.e(TAG, "on Click Cancel: " + file.delete());
             }
         });
         buttonPlay = (ImageButton) findViewById(R.id.button_play);
         buttonPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (firstPlay){
+                if (firstPlay) {
                     if (listenService.isPlaying()) {
                         buttonPlay.setImageResource(R.drawable.ic_play_circle_filled_black_36dp);
                         listenService.pauseMedia();
@@ -202,6 +211,10 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
             startService(intentService); //Starting the service
             bindService(intentService, mConnection, Context.BIND_AUTO_CREATE); //Binding to the service!
         }
+
+        String urlFirebase = "gs://tu-himnario-adventista.appspot.com";
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+        reference = storage.getReferenceFromUrl(urlFirebase);
     }
 
     private void getData() {
@@ -416,7 +429,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
             setUpPanelControls();
             seekBar.setProgress(0);
             musicTime.setText(getDate(0));
-            musicSize.setText(MusicViewAdapter.humanReadableByteCount(himnos.get(numero - 1).getSize()));
+            musicSize.setText(FileUtils.humanReadableByteCount(himnos.get(numero - 1).getSize()));
             String himnoPath = FileUtils.getDirHimnos(getApplicationContext()).getAbsoluteFile() + "/" + FileUtils.getStringNumber(numero) + ".ogg";
             MediaPlayer mediaPlayer = new MediaPlayer();
             try {
@@ -578,7 +591,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
             MediaListenService.LocalBinder binder = (MediaListenService.LocalBinder) service;
             listenService = binder.getServiceInstance(); //Get instance of your service!
             listenService.registerClient(MainActivity.this); //Activity register in the service as client for callabcks!
-            if (listenService.isPlaying()){
+            if (listenService.isPlaying()) {
                 buttonPlay.setImageResource(R.drawable.ic_pause_circle_filled_black_36dp);
             }
 //            tvServiceState.setText("Connected to service...");
@@ -648,43 +661,40 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
 
     private void donwloadMusic(int numberInt) {
         String number = FileUtils.getStringNumber(numberInt);
-
-        String url = "gs://tu-himnario-adventista.appspot.com";
-        FirebaseStorage storage = FirebaseStorage.getInstance();
-        StorageReference reference = storage.getReferenceFromUrl(url);
-        StorageReference himnoRef = reference.child("himnos/" + number + ".ogg");
-
         File dirHimnos = new File(getFilesDir().getAbsolutePath() + "/himnos/");
         dirHimnos.mkdirs();
-
-        final TextView musicProcent = (TextView) findViewById(R.id.music_procent);
-        final ProgressBar progressBar = (ProgressBar) findViewById(R.id.music_progress);
+        StorageReference himnoRef = reference.child("himnos/" + number + ".ogg");
 
         File file = new File(dirHimnos.getAbsolutePath() + "/" + number + ".ogg");
         if (!file.exists()) {
-            progressBar.setIndeterminate(true);
-            progressBar.setVisibility(View.VISIBLE);
+            musicProgress.setIndeterminate(true);
+            musicProgress.setVisibility(View.VISIBLE);
             musicProcent.setVisibility(View.VISIBLE);
 
-            himnoRef.getFile(file).addOnProgressListener(new OnProgressListener<FileDownloadTask.TaskSnapshot>() {
+            fileDownloadTask = himnoRef.getFile(file);
+
+            fileDownloadTask.addOnProgressListener(new OnProgressListener<FileDownloadTask.TaskSnapshot>() {
                 @Override
                 public void onProgress(FileDownloadTask.TaskSnapshot taskSnapshot) {
                     if (taskSnapshot.getBytesTransferred() > 1000) {
-                        progressBar.setProgress((int) (taskSnapshot.getBytesTransferred() * 100 / taskSnapshot.getTotalByteCount()));
-                        progressBar.setIndeterminate(false);
+                        musicProgress.setProgress((int) (taskSnapshot.getBytesTransferred() * 100 / taskSnapshot.getTotalByteCount()));
+                        musicProgress.setIndeterminate(false);
+                        musicSize.setText(FileUtils.humanReadableByteCount(taskSnapshot.getBytesTransferred())
+                                + " de " + FileUtils.humanReadableByteCount(taskSnapshot.getTotalByteCount()));
                     }
-                    musicProcent.setText(progressBar.getProgress() + "%");
+                    musicProcent.setText(musicProgress.getProgress() + "%");
                 }
             }).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                    progressBar.setVisibility(View.GONE);
+                    musicProgress.setVisibility(View.GONE);
                     musicProcent.setVisibility(View.GONE);
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    Log.e(TAG, "onFailure: ", e);
+                    musicProgress.setProgress(0);
+                    musicSize.setText(getDate(himnos.get(numero - 1).getSize()));
                 }
             });
 

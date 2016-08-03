@@ -26,19 +26,30 @@
             android:textSize="20dp" />
     </android.support.v7.widget.Toolbar>
 
-    <ScrollView
-        android:id="@+id/scroll_himno"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <org.ajcm.hiad.views.ZoomTextView
-            android:id="@+id/text_himno"
+        <View
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="@dimen/activity_vertical_margin"
-            android:textSize="20dp" />
-    </ScrollView>
+            android:layout_height="4dp"
+            android:layout_gravity="bottom"
+            android:background="@drawable/shadow_inverse" />
+
+        <ScrollView
+            android:id="@+id/scroll_himno"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <org.ajcm.hiad.views.ZoomTextView
+                android:id="@+id/text_himno"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="@dimen/activity_vertical_margin"
+                android:textSize="20dp" />
+        </ScrollView>
+    </FrameLayout>
 
     <include layout="@layout/layout_download" />
 

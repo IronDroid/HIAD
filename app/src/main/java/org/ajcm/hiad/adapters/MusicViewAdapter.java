@@ -67,9 +67,9 @@ public class MusicViewAdapter extends RecyclerView.Adapter<MusicViewAdapter.View
         final Himno himno = himnos.get(position);
         holder.musicNumber.setText(String.valueOf(himno.getNumero()));
         holder.musicTitle.setText(himno.getTitulo());
-        holder.musicSize.setText(humanReadableByteCount(himno.getSize()));
+        holder.musicSize.setText(FileUtils.humanReadableByteCount(himno.getSize()));
         if (himnosDownloaded.contains(himno.getNumero())) {
-            holder.musicSize.setText(humanReadableByteCount(himno.getSize()) + " - Descargado");
+            holder.musicSize.setText(FileUtils.humanReadableByteCount(himno.getSize()) + " - Descargado");
         }
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -107,7 +107,7 @@ public class MusicViewAdapter extends RecyclerView.Adapter<MusicViewAdapter.View
                             holder.musicSize.setVisibility(View.VISIBLE);
                             holder.progressBar.setVisibility(View.GONE);
                             holder.musicProcent.setVisibility(View.GONE);
-                            holder.musicSize.setText(humanReadableByteCount(himno.getSize()) + " - Descargado");
+                            holder.musicSize.setText(FileUtils.humanReadableByteCount(himno.getSize()) + " - Descargado");
                         }
                     }).addOnFailureListener(new OnFailureListener() {
                         @Override
@@ -116,7 +116,7 @@ public class MusicViewAdapter extends RecyclerView.Adapter<MusicViewAdapter.View
                         }
                     });
                 } else {
-                    holder.musicSize.setText(humanReadableByteCount(himno.getSize()) + " - Descargado");
+                    holder.musicSize.setText(FileUtils.humanReadableByteCount(himno.getSize()) + " - Descargado");
                 }
             }
         });
@@ -150,13 +150,5 @@ public class MusicViewAdapter extends RecyclerView.Adapter<MusicViewAdapter.View
         public String toString() {
             return super.toString() + " '" + musicTitle.getText() + "'";
         }
-    }
-
-    public static String humanReadableByteCount(long bytes) {
-        int unit = 1000;
-        if (bytes < unit) return bytes + " B";
-        int exp = (int) (Math.log(bytes) / Math.log(unit));
-        String pre = "kMGTPE".charAt(exp - 1) + "";
-        return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
     }
 }
