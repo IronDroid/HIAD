@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.database.Cursor;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,7 +21,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -39,16 +42,20 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import org.ajcm.hiad.MediaListenService;
 import org.ajcm.hiad.R;
+import org.ajcm.hiad.adapters.MusicViewAdapter;
 import org.ajcm.hiad.dataset.DBAdapter;
 import org.ajcm.hiad.models.Himno;
 import org.ajcm.hiad.utils.FileUtils;
 import org.ajcm.hiad.views.ZoomTextView;
 
 import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuItemClickListener, MediaListenService.MediaServiceCallbacks {
+public class MainActivity extends AppCompatActivity implements MediaListenService.MediaServiceCallbacks {
 
     private static final String TAG = "MainActivity";
     private static final String CURRENT_TEXT_NUMBER = "current_text_number";
@@ -76,16 +83,28 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
     private int limit;
     private static final int OLD_LIMIT = 527;
     private static final int NEW_LIMIT = 613;
+    private boolean firstPlay;
 
     private boolean toastClose;
     private Toast toast;
 
     private AdView adView;
     private FirebaseAnalytics analytics;
-    private SeekBar seekBar;
 
     private Intent intentService;
     private MediaListenService listenService;
+
+    private LinearLayout layoutDownload;
+    private LinearLayout layoutPlay;
+    private SeekBar seekBar;
+    private ImageButton buttonPlay;
+    private ImageButton buttonDonwload;
+    private ImageButton buttonCancel;
+    private TextView musicSize;
+    private TextView musicTime;
+    private TextView musicDuration;
+    private TextView musicProcent;
+    private ProgressBar musicProgress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,29 +149,54 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
             getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimary));
         }
 
+        layoutDownload = (LinearLayout) findViewById(R.id.layout_download);
+        layoutPlay = (LinearLayout) findViewById(R.id.layout_play);
         seekBar = (SeekBar) findViewById(R.id.seek_bar);
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        buttonDonwload = (ImageButton) findViewById(R.id.music_download);
+        buttonDonwload.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser) {
-                    Log.e(TAG, "onProgressChanged: " + progress + fromUser);
-                }
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                Log.e(TAG, "onStartTrackingTouch: " + seekBar.getProgress());
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                Log.e(TAG, "onStopTrackingTouch: " + seekBar.getProgress());
+            public void onClick(View view) {
+                musicProcent.setVisibility(View.VISIBLE);
+                buttonCancel.setVisibility(View.VISIBLE);
+                buttonDonwload.setVisibility(View.GONE);
             }
         });
+        buttonCancel = (ImageButton) findViewById(R.id.music_cancel);
+        buttonCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                musicProcent.setVisibility(View.GONE);
+                buttonCancel.setVisibility(View.GONE);
+                buttonDonwload.setVisibility(View.VISIBLE);
+            }
+        });
+        buttonPlay = (ImageButton) findViewById(R.id.button_play);
+        buttonPlay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (firstPlay){
+                    if (listenService.isPlaying()) {
+                        buttonPlay.setImageResource(R.drawable.ic_play_circle_filled_black_36dp);
+                        listenService.pauseMedia();
+                    } else {
+                        listenService.playMedia();
+                        buttonPlay.setImageResource(R.drawable.ic_pause_circle_filled_black_36dp);
+                    }
+                } else {
+                    firstPlay = true;
+                    listenService.playMedia(numero);
+                    buttonPlay.setImageResource(R.drawable.ic_pause_circle_filled_black_36dp);
+                }
+            }
+        });
+        musicSize = (TextView) findViewById(R.id.music_size);
+        musicTime = (TextView) findViewById(R.id.music_time);
+        musicDuration = (TextView) findViewById(R.id.music_duration);
+        musicProcent = (TextView) findViewById(R.id.music_procent);
+        musicProgress = (ProgressBar) findViewById(R.id.music_progress);
 
         restoreDataSaved(savedInstanceState);
 
-        Log.e(TAG, "onCreate: " + isServiceRunning());
         intentService = new Intent(this, MediaListenService.class);
         if (!isServiceRunning()) {
             startService(intentService); //Starting the service
@@ -180,6 +224,26 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
         analytics = FirebaseAnalytics.getInstance(this);
     }
 
+    private void restoreDataSaved(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            numberHimno.setText(savedInstanceState.getString(CURRENT_TEXT_NUMBER));
+            if (numberHimno.getText().toString().length() > 0) {
+                placeholderHimno.setText("");
+            } else {
+                setPlaceholderHimno();
+            }
+            toolbarTitle.setText(savedInstanceState.getString(TOOLBAR_PANEL_TITLE));
+            numString = savedInstanceState.getString(NUM_STRING);
+            textHimno.setText(savedInstanceState.getString(TEXT_HIMNO));
+            numero = savedInstanceState.getInt(NUMERO);
+            textSize = savedInstanceState.getFloat(TEXT_SIZE);
+            seekBar.setMax(savedInstanceState.getInt("seek_max"));
+            musicDuration.setText(savedInstanceState.getString("duration"));
+            firstPlay = savedInstanceState.getBoolean("first_play");
+            setUpPanelControls();
+        }
+    }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -189,8 +253,9 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
         outState.putString(TEXT_HIMNO, textHimno.getText().toString());
         outState.putInt(NUMERO, numero);
         outState.putFloat(TEXT_SIZE, textSize);
-        outState.putBoolean("seek_bar", seekBar.getVisibility() == View.VISIBLE);
         outState.putInt("seek_max", seekBar.getMax());
+        outState.putString("duration", musicDuration.getText().toString());
+        outState.putBoolean("first_play", firstPlay);
     }
 
     @Override
@@ -328,8 +393,6 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
                 toolbarTitle.setText(titleShow);
                 numberHimno.setText(titleShow);
                 textHimno.setText(himnos.get(numero - 1).getLetra());
-
-                setUpPanelMenu();
             }
         }
     }
@@ -348,10 +411,21 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
             toolbarTitle.setText(titleShow);
             textHimno.setText(himnos.get(numero - 1).getLetra());
 
-            setUpPanelMenu();
-
             numberHimno.setText("");
             setPlaceholderHimno();
+            setUpPanelControls();
+            seekBar.setProgress(0);
+            musicTime.setText(getDate(0));
+            musicSize.setText(MusicViewAdapter.humanReadableByteCount(himnos.get(numero - 1).getSize()));
+            String himnoPath = FileUtils.getDirHimnos(getApplicationContext()).getAbsoluteFile() + "/" + FileUtils.getStringNumber(numero) + ".ogg";
+            MediaPlayer mediaPlayer = new MediaPlayer();
+            try {
+                mediaPlayer.setDataSource(himnoPath);
+                mediaPlayer.prepare();
+                musicDuration.setText(getDate(mediaPlayer.getDuration()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -395,44 +469,22 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
         }
     }
 
-    private void restoreDataSaved(Bundle savedInstanceState) {
-        if (savedInstanceState != null) {
-            numberHimno.setText(savedInstanceState.getString(CURRENT_TEXT_NUMBER));
-            if (numberHimno.getText().toString().length() > 0) {
-                placeholderHimno.setText("");
-            } else {
-                setPlaceholderHimno();
-            }
-            toolbarTitle.setText(savedInstanceState.getString(TOOLBAR_PANEL_TITLE));
-            numString = savedInstanceState.getString(NUM_STRING);
-            textHimno.setText(savedInstanceState.getString(TEXT_HIMNO));
-            numero = savedInstanceState.getInt(NUMERO);
-            textSize = savedInstanceState.getFloat(TEXT_SIZE);
-            seekBar.setVisibility(savedInstanceState.getBoolean("seek_bar") ? View.VISIBLE : View.GONE);
-            seekBar.setMax(savedInstanceState.getInt("seek_max"));
-            setUpPanelMenu();
-        }
-    }
-
     private void setupUpPanel() {
         toolbarTitle = (TextView) findViewById(R.id.toolbar_title);
         toolbarPanel = (Toolbar) findViewById(R.id.toolbar_panel);
-        toolbarPanel.inflateMenu(R.menu.menu_himno);
-        toolbarPanel.setOnMenuItemClickListener(this);
 
         upPanelLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
         upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
         upPanelLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
-
             }
 
             @Override
             public void onPanelCollapsed(View panel) {
                 cleanNum();
                 listenService.stopMedia();
-                seekBar.setVisibility(View.GONE);
+                firstPlay = false;
             }
 
             @Override
@@ -457,59 +509,18 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
         }
     }
 
-    private void donwloadMusic(int numberInt) {
-        String number = FileUtils.getStringNumber(numberInt);
-
-        String url = "gs://tu-himnario-adventista.appspot.com";
-        FirebaseStorage storage = FirebaseStorage.getInstance();
-        StorageReference reference = storage.getReferenceFromUrl(url);
-        StorageReference himnoRef = reference.child("himnos/" + number + ".ogg");
-
-        File dirHimnos = new File(getFilesDir().getAbsolutePath() + "/himnos/");
-        dirHimnos.mkdirs();
-
-        final TextView musicProcent = (TextView) findViewById(R.id.music_procent);
-        final ProgressBar progressBar = (ProgressBar) findViewById(R.id.music_progress);
-
-        File file = new File(dirHimnos.getAbsolutePath() + "/" + number + ".ogg");
-        if (!file.exists()) {
-            progressBar.setIndeterminate(true);
-            progressBar.setVisibility(View.VISIBLE);
-            musicProcent.setVisibility(View.VISIBLE);
-
-            himnoRef.getFile(file).addOnProgressListener(new OnProgressListener<FileDownloadTask.TaskSnapshot>() {
-                @Override
-                public void onProgress(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                    if (taskSnapshot.getBytesTransferred() > 1000) {
-                        progressBar.setProgress((int) (taskSnapshot.getBytesTransferred() * 100 / taskSnapshot.getTotalByteCount()));
-                        progressBar.setIndeterminate(false);
-                    }
-                    musicProcent.setText(progressBar.getProgress() + "%");
-                }
-            }).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                    progressBar.setVisibility(View.GONE);
-                    musicProcent.setVisibility(View.GONE);
-                    toolbarPanel.getMenu().getItem(0).setVisible(true);
-                    toolbarPanel.getMenu().getItem(1).setVisible(false);
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.e(TAG, "onFailure: ", e);
-                }
-            });
+    private void setUpPanelControls() {
+        if (versionHimno) {
+            layoutDownload.setVisibility(View.GONE);
+            layoutPlay.setVisibility(View.GONE);
+            return;
         }
-    }
-
-    private void setUpPanelMenu() {
         if (FileUtils.isHimnoDownloaded(getApplicationContext(), numero)) {
-            toolbarPanel.getMenu().getItem(0).setVisible(true);
-            toolbarPanel.getMenu().getItem(1).setVisible(false);
+            layoutDownload.setVisibility(View.GONE);
+            layoutPlay.setVisibility(View.VISIBLE);
         } else {
-            toolbarPanel.getMenu().getItem(0).setVisible(false);
-            toolbarPanel.getMenu().getItem(1).setVisible(true);
+            layoutDownload.setVisibility(View.VISIBLE);
+            layoutPlay.setVisibility(View.GONE);
         }
     }
 
@@ -557,22 +568,6 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
         masUno(1);
     }
 
-    @Override
-    public boolean onMenuItemClick(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_play:
-                Log.e(TAG, "action_play");
-                seekBar.setVisibility(View.VISIBLE);
-                listenService.playMedia(numero);
-                return true;
-            case R.id.action_download:
-                Log.e(TAG, "onMenuItemClick: DOWNLOAD");
-                donwloadMusic(numero);
-                return true;
-        }
-        return false;
-    }
-
     private ServiceConnection mConnection = new ServiceConnection() {
 
         @Override
@@ -583,6 +578,9 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
             MediaListenService.LocalBinder binder = (MediaListenService.LocalBinder) service;
             listenService = binder.getServiceInstance(); //Get instance of your service!
             listenService.registerClient(MainActivity.this); //Activity register in the service as client for callabcks!
+            if (listenService.isPlaying()){
+                buttonPlay.setImageResource(R.drawable.ic_pause_circle_filled_black_36dp);
+            }
 //            tvServiceState.setText("Connected to service...");
 //            tbStartTask.setEnabled(true);
         }
@@ -596,23 +594,20 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
     };
 
     @Override
-    public void playMedia() {
-        Toast.makeText(MainActivity.this, "play", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void stopMedia() {
-        Toast.makeText(MainActivity.this, "stop", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
     public void updateProgress(int mCurrentPosition) {
-        seekBar.setProgress(mCurrentPosition);
+        seekBar.setProgress(mCurrentPosition / 100);
+        musicTime.setText(getDate(mCurrentPosition));
     }
 
     @Override
-    public void setMaxProgress(int duration) {
-        seekBar.setMax(duration);
+    public void durationMedia(int duration) {
+        seekBar.setMax(duration / 100);
+        musicDuration.setText(getDate(duration));
+    }
+
+    @Override
+    public void completion() {
+        firstPlay = false;
     }
 
     @Override
@@ -639,5 +634,60 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
             }
         }
         return false;
+    }
+
+    public static String getDate(long milliSeconds) {
+        // Create a DateFormatter object for displaying date in specified format.
+        SimpleDateFormat formatter = new SimpleDateFormat("mm:ss");
+
+        // Create a calendar object that will convert the date and time value in milliseconds to date.
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(milliSeconds);
+        return formatter.format(calendar.getTime());
+    }
+
+    private void donwloadMusic(int numberInt) {
+        String number = FileUtils.getStringNumber(numberInt);
+
+        String url = "gs://tu-himnario-adventista.appspot.com";
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+        StorageReference reference = storage.getReferenceFromUrl(url);
+        StorageReference himnoRef = reference.child("himnos/" + number + ".ogg");
+
+        File dirHimnos = new File(getFilesDir().getAbsolutePath() + "/himnos/");
+        dirHimnos.mkdirs();
+
+        final TextView musicProcent = (TextView) findViewById(R.id.music_procent);
+        final ProgressBar progressBar = (ProgressBar) findViewById(R.id.music_progress);
+
+        File file = new File(dirHimnos.getAbsolutePath() + "/" + number + ".ogg");
+        if (!file.exists()) {
+            progressBar.setIndeterminate(true);
+            progressBar.setVisibility(View.VISIBLE);
+            musicProcent.setVisibility(View.VISIBLE);
+
+            himnoRef.getFile(file).addOnProgressListener(new OnProgressListener<FileDownloadTask.TaskSnapshot>() {
+                @Override
+                public void onProgress(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                    if (taskSnapshot.getBytesTransferred() > 1000) {
+                        progressBar.setProgress((int) (taskSnapshot.getBytesTransferred() * 100 / taskSnapshot.getTotalByteCount()));
+                        progressBar.setIndeterminate(false);
+                    }
+                    musicProcent.setText(progressBar.getProgress() + "%");
+                }
+            }).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                    progressBar.setVisibility(View.GONE);
+                    musicProcent.setVisibility(View.GONE);
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.e(TAG, "onFailure: ", e);
+                }
+            });
+
+        }
     }
 }

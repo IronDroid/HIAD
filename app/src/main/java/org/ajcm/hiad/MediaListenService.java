@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -21,8 +20,6 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
     private static final String TAG = "MediaListenService";
     private MediaPlayer mediaPlayer;
     private final IBinder mBinder = new LocalBinder();
-
-    private int playback_status = 0;
 
     private MediaServiceCallbacks callbacks;
 
@@ -47,11 +44,8 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
         runnable = new Runnable() {
             @Override
             public void run() {
-                if (mediaPlayer.isPlaying()) {
-                    int mCurrentPosition = mediaPlayer.getCurrentPosition() / 100;
-                    handler.postDelayed(this, 100);
-                    callbacks.updateProgress(mCurrentPosition);
-                }
+                handler.postDelayed(this, 100);
+                callbacks.updateProgress(mediaPlayer.getCurrentPosition());
             }
         };
 
@@ -74,10 +68,9 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
             mediaPlayer.setDataSource(himnoPath);
             mediaPlayer.prepare();
             mediaPlayer.start();
-            callbacks.setMaxProgress(mediaPlayer.getDuration() / 100);
+            callbacks.durationMedia(mediaPlayer.getDuration());
         } catch (IllegalArgumentException | IllegalStateException | IOException e) {
             Log.e(TAG, "setDataSource IllegalArgumentException");
-            playback_status = -1;
         }
     }
 
@@ -99,8 +92,6 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
     MediaPlayer.OnErrorListener errListener = new MediaPlayer.OnErrorListener() {
         @Override
         public boolean onError(MediaPlayer mp, int what, int extra) {
-            playback_status = -1;
-//            sendMessageToUI(0, playback_status);
             Log.e(TAG, "onError: ");
             return true;
         }
@@ -110,10 +101,16 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
         @Override
         public void onPrepared(MediaPlayer mediaPlayer) {
             mediaPlayer.start();
-            playback_status = 1;
-//            sendMessageToUI(0, playback_status);
             Log.e(TAG, "onPrepared: ");
             runnable.run();
+        }
+    };
+
+    MediaPlayer.OnCompletionListener completionListener = new MediaPlayer.OnCompletionListener() {
+        @Override
+        public void onCompletion(MediaPlayer mediaPlayer) {
+            Log.e(TAG, "onCompletion: ");
+            callbacks.completion();
         }
     };
 
@@ -135,7 +132,6 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
                 // is likely to resume
                 if (mediaPlayer.isPlaying()) {
                     mediaPlayer.pause();
-                    playback_status = 2;
                 }
 
                 break;
@@ -149,10 +145,16 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
         }
     }
 
-    public class LocalBinder extends Binder {
-        public MediaListenService getServiceInstance() {
-            return MediaListenService.this;
-        }
+    public boolean isPlaying() {
+        return mediaPlayer.isPlaying();
+    }
+
+    public void pauseMedia() {
+        mediaPlayer.pause();
+    }
+
+    public void playMedia() {
+        mediaPlayer.start();
     }
 
     public void registerClient(Activity activity) {
@@ -162,22 +164,25 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
     public void playMedia(int numero) {
         Log.e(TAG, "playMedia: ");
         initStream(numero);
-        callbacks.playMedia();
     }
 
     public void stopMedia() {
         Log.e(TAG, "stopMedia: ");
         mediaPlayer.stop();
-        callbacks.stopMedia();
+        handler.removeCallbacks(runnable);
     }
 
     public interface MediaServiceCallbacks {
-        void playMedia();
-
-        void stopMedia();
-
         void updateProgress(int mCurrentPosition);
 
-        void setMaxProgress(int duration);
+        void durationMedia(int duration);
+
+        void completion();
+    }
+
+    public class LocalBinder extends Binder {
+        public MediaListenService getServiceInstance() {
+            return MediaListenService.this;
+        }
     }
 }

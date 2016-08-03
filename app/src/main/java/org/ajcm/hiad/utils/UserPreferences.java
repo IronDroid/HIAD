@@ -17,7 +17,6 @@ public class UserPreferences {
         return getPreferences().edit();
     }
 
-
     private SharedPreferences getPreferences(){
         return PreferenceManager.getDefaultSharedPreferences(context);
     }
@@ -27,7 +26,6 @@ public class UserPreferences {
         editor.putString(key, value);
         editor.commit();
     }
-
 
     public void putInt(String tag, int value) {
         SharedPreferences.Editor editor = getEditor();

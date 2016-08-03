@@ -28,9 +28,9 @@
 
     <ScrollView
         android:id="@+id/scroll_himno"
-        android:layout_weight="1"
         android:layout_width="match_parent"
-        android:layout_height="0dp">
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
         <org.ajcm.hiad.views.ZoomTextView
             android:id="@+id/text_himno"
@@ -40,33 +40,7 @@
             android:textSize="20dp" />
     </ScrollView>
 
-    <SeekBar
-        android:visibility="gone"
-        android:id="@+id/seek_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+    <include layout="@layout/layout_download" />
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <ProgressBar
-            android:id="@+id/music_progress"
-            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_weight="1"
-            android:visibility="gone"
-            android:max="100" />
-
-        <TextView
-            android:id="@+id/music_procent"
-            android:layout_width="50dp"
-            android:visibility="gone"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:textAppearance="?android:textAppearanceMedium" />
-    </LinearLayout>
+    <include layout="@layout/layout_play" />
 </LinearLayout>
