@@ -40,7 +40,7 @@ import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
-import org.ajcm.hiad.MediaListenService;
+import org.ajcm.hiad.services.MediaListenService;
 import org.ajcm.hiad.R;
 import org.ajcm.hiad.dataset.DBAdapter;
 import org.ajcm.hiad.models.Himno;
@@ -154,6 +154,25 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         layoutDownload = (LinearLayout) findViewById(R.id.layout_download);
         layoutPlay = (LinearLayout) findViewById(R.id.layout_play);
         seekBar = (SeekBar) findViewById(R.id.seek_bar);
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int position, boolean user) {
+                if (user) {
+                    Log.e(TAG, "onProgressChanged: " + position);
+                    listenService.setSeek(position * 100);
+                    buttonPlay.setImageResource(R.drawable.ic_pause_circle_filled_black_36dp);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
         buttonDonwload = (ImageButton) findViewById(R.id.music_download);
         buttonDonwload.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -363,6 +382,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 toast.cancel();
             }
         } else {
+            stopService(intentService);
             super.onBackPressed();
         }
     }
@@ -498,6 +518,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 cleanNum();
                 listenService.stopMedia();
                 firstPlay = false;
+                buttonPlay.setImageResource(R.drawable.ic_play_circle_filled_black_36dp);
             }
 
             @Override
@@ -621,6 +642,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
     @Override
     public void completion() {
         firstPlay = false;
+        buttonPlay.setImageResource(R.drawable.ic_play_circle_filled_black_36dp);
     }
 
     @Override
@@ -642,7 +664,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
     private boolean isServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if ("org.ajcm.hiad.MediaListenService".equals(service.service.getClassName())) {
+            if ("org.ajcm.hiad.services.MediaListenService".equals(service.service.getClassName())) {
                 return true;
             }
         }

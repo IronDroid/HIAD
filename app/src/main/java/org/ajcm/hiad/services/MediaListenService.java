@@ -1,4 +1,4 @@
-package org.ajcm.hiad;
+package org.ajcm.hiad.services;
 
 import android.app.Activity;
 import android.app.Service;
@@ -10,6 +10,7 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.os.SystemClock;
 import android.util.Log;
 
 import org.ajcm.hiad.utils.FileUtils;
@@ -26,14 +27,9 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
     @Override
     public void onCreate() {
         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
+        audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN);
 
-//        if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-//            this.audioFocusGranted = true;
-//        } else if (result == AudioManager.AUDIOFOCUS_REQUEST_FAILED) {
-//            this.audioFocusGranted = false;
-//        }
         mediaPlayer = new MediaPlayer();
     }
 
@@ -61,6 +57,7 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
 
         mediaPlayer.setOnErrorListener(errListener);
         mediaPlayer.setOnPreparedListener(prepListener);
+        mediaPlayer.setOnCompletionListener(completionListener);
         mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         mediaPlayer.reset();
 
@@ -100,7 +97,6 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
     MediaPlayer.OnPreparedListener prepListener = new MediaPlayer.OnPreparedListener() {
         @Override
         public void onPrepared(MediaPlayer mediaPlayer) {
-            mediaPlayer.start();
             Log.e(TAG, "onPrepared: ");
             runnable.run();
         }
@@ -118,7 +114,6 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
     public void onAudioFocusChange(int focusChange) {
         switch (focusChange) {
             case AudioManager.AUDIOFOCUS_GAIN:
-                // resume playback
                 break;
 
             case AudioManager.AUDIOFOCUS_LOSS:
@@ -137,7 +132,6 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
                 break;
 
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                Log.e(TAG, "onAudioFocusChange: AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK");
                 // Lost focus for a short time, but it's ok to keep playing
                 // at an attenuated level
                 if (mediaPlayer.isPlaying()) mediaPlayer.setVolume(0.1f, 0.1f);
@@ -170,6 +164,19 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
         Log.e(TAG, "stopMedia: ");
         mediaPlayer.stop();
         handler.removeCallbacks(runnable);
+    }
+
+    public void setSeek(final int position) {
+        if (mediaPlayer != null) {
+            mediaPlayer.pause();
+            mediaPlayer.seekTo(position);
+            mediaPlayer.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
+                @Override
+                public void onSeekComplete(MediaPlayer mp) {
+                    mp.start();
+                }
+            });
+        }
     }
 
     public interface MediaServiceCallbacks {

@@ -27,7 +27,7 @@
         </activity>
         <activity android:name=".activities.MusicActivity"/>
         <service
-            android:name=".MediaListenService"
+            android:name=".services.MediaListenService"
             android:enabled="true" />
     </application>
 
