@@ -5,6 +5,7 @@
     <color name="colorAccent">#FF5722</color>
 
     <color name="whiteText">#fefefe</color>
+    <color name="whiteHintText">#f2f2f2</color>
     <color name="blackText">#000000</color>
 
     <color name="flat_pressed">#66999999</color>

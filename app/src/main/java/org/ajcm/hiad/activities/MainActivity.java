@@ -40,10 +40,10 @@ import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
-import org.ajcm.hiad.services.MediaListenService;
 import org.ajcm.hiad.R;
 import org.ajcm.hiad.dataset.DBAdapter;
 import org.ajcm.hiad.models.Himno;
+import org.ajcm.hiad.services.MediaListenService;
 import org.ajcm.hiad.utils.FileUtils;
 import org.ajcm.hiad.views.ZoomTextView;
 
@@ -449,6 +449,8 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
             setUpPanelControls();
             seekBar.setProgress(0);
             musicTime.setText(getDate(0));
+            buttonDonwload.setVisibility(View.VISIBLE);
+            buttonCancel.setVisibility(View.GONE);
             musicSize.setText(FileUtils.humanReadableByteCount(himnos.get(numero - 1).getSize()));
             String himnoPath = FileUtils.getDirHimnos(getApplicationContext()).getAbsoluteFile() + "/" + FileUtils.getStringNumber(numero) + ".ogg";
             MediaPlayer mediaPlayer = new MediaPlayer();
@@ -709,8 +711,8 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
             }).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                    musicProgress.setVisibility(View.GONE);
-                    musicProcent.setVisibility(View.GONE);
+                    layoutDownload.setVisibility(View.GONE);
+                    layoutPlay.setVisibility(View.VISIBLE);
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override

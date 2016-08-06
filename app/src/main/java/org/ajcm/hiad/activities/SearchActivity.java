@@ -13,6 +13,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -84,6 +85,8 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
         searchView.setSubmitButtonEnabled(false);
         searchView.setQueryHint("Título del himno");
         searchView.requestFocus();
+        ((EditText)searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text))
+                .setHintTextColor(getResources().getColor(R.color.whiteHintText));
         return super.onCreateOptionsMenu(menu);
     }
 
