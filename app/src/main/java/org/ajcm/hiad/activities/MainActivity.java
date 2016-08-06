@@ -44,6 +44,7 @@ import org.ajcm.hiad.R;
 import org.ajcm.hiad.dataset.DBAdapter;
 import org.ajcm.hiad.models.Himno;
 import org.ajcm.hiad.services.MediaListenService;
+import org.ajcm.hiad.utils.ConnectionUtils;
 import org.ajcm.hiad.utils.FileUtils;
 import org.ajcm.hiad.views.ZoomTextView;
 
@@ -161,6 +162,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                     Log.e(TAG, "onProgressChanged: " + position);
                     listenService.setSeek(position * 100);
                     buttonPlay.setImageResource(R.drawable.ic_pause_circle_filled_black_36dp);
+                    fileDownloadTask = null;
                 }
             }
 
@@ -177,10 +179,14 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         buttonDonwload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                musicProcent.setVisibility(View.VISIBLE);
-                buttonCancel.setVisibility(View.VISIBLE);
-                buttonDonwload.setVisibility(View.GONE);
-                donwloadMusic(numero);
+                if (ConnectionUtils.hasInternet(getApplicationContext())) {
+                    musicProcent.setVisibility(View.VISIBLE);
+                    buttonCancel.setVisibility(View.VISIBLE);
+                    buttonDonwload.setVisibility(View.GONE);
+                    donwloadMusic(numero);
+                } else {
+                    Toast.makeText(MainActivity.this, "No hay internet", Toast.LENGTH_SHORT).show();
+                }
             }
         });
         buttonCancel = (ImageButton) findViewById(R.id.music_cancel);
@@ -190,6 +196,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 musicProcent.setVisibility(View.GONE);
                 buttonCancel.setVisibility(View.GONE);
                 buttonDonwload.setVisibility(View.VISIBLE);
+                musicProgress.setIndeterminate(false);
                 fileDownloadTask.cancel();
 
                 String number = FileUtils.getStringNumber(numero);
@@ -268,7 +275,6 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
             numString = savedInstanceState.getString(NUM_STRING);
             textHimno.setText(savedInstanceState.getString(TEXT_HIMNO));
             numero = savedInstanceState.getInt(NUMERO);
-            textSize = savedInstanceState.getFloat(TEXT_SIZE);
             seekBar.setMax(savedInstanceState.getInt("seek_max"));
             musicDuration.setText(savedInstanceState.getString("duration"));
             firstPlay = savedInstanceState.getBoolean("first_play");
@@ -284,7 +290,6 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         outState.putString(NUM_STRING, numString);
         outState.putString(TEXT_HIMNO, textHimno.getText().toString());
         outState.putInt(NUMERO, numero);
-        outState.putFloat(TEXT_SIZE, textSize);
         outState.putInt("seek_max", seekBar.getMax());
         outState.putString("duration", musicDuration.getText().toString());
         outState.putBoolean("first_play", firstPlay);
@@ -449,6 +454,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
             setUpPanelControls();
             seekBar.setProgress(0);
             musicTime.setText(getDate(0));
+            musicProgress.setIndeterminate(false);
             buttonDonwload.setVisibility(View.VISIBLE);
             buttonCancel.setVisibility(View.GONE);
             musicSize.setText(FileUtils.humanReadableByteCount(himnos.get(numero - 1).getSize()));
