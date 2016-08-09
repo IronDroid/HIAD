@@ -350,7 +350,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 return true;
 
             case R.id.action_about:
-                new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.app_name) + " v1.0")
+                new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.app_name))
                         .setMessage("Desarrollado por:" +
                                 "\nAlex Jhonny Cruz Mamani" +
                                 "\nDesarrollador Android Entusiasta" +

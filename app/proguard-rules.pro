@@ -21,11 +21,27 @@
 -optimizationpasses 5
 -allowaccessmodification
 
+-keepattributes Signature
+-keepattributes *Annotation*
+
 -keep public class * extends android.app.Activity
 -keep public class * extends android.app.Application
 -keep public class * extends android.app.Service
 -keep public class * extends android.preference.Preference
+-keep public class * extends com.google.android.gms.internal
+-keep public class * extends com.google.firebase
 
+-keep class com.google.android.gms.internal.**
+-keep class com.google.firebase.**
+-keep class org.ajcm.hiad.**
+
+-keep public class com.google.android.gms.ads.** {
+   public *;
+}
+
+-keep public class com.google.ads.** {
+   public *;
+}
 
 -keep public class * extends android.view.View {
  public <init>(android.content.Context);
