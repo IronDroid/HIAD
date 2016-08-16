@@ -160,8 +160,12 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
             public void onProgressChanged(SeekBar seekBar, int position, boolean user) {
                 if (user) {
                     Log.e(TAG, "onProgressChanged: " + position);
+                    if (listenService.isPlaying()) {
+                        buttonPlay.setImageResource(R.drawable.ic_pause_circle_filled_black_36dp);
+                    } else {
+                        buttonPlay.setImageResource(R.drawable.ic_play_circle_filled_black_36dp);
+                    }
                     listenService.setSeek(position * 100);
-                    buttonPlay.setImageResource(R.drawable.ic_pause_circle_filled_black_36dp);
                     fileDownloadTask = null;
                 }
             }

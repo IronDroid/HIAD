@@ -114,6 +114,7 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
     public void onAudioFocusChange(int focusChange) {
         switch (focusChange) {
             case AudioManager.AUDIOFOCUS_GAIN:
+                mediaPlayer.setVolume(1.0f, 1.0f);
                 break;
 
             case AudioManager.AUDIOFOCUS_LOSS:
