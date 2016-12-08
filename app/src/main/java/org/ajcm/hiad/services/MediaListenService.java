@@ -23,13 +23,11 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
     private final IBinder mBinder = new LocalBinder();
 
     private MediaServiceCallbacks callbacks;
+    private AudioManager audioManager;
 
     @Override
     public void onCreate() {
-        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
-                AudioManager.AUDIOFOCUS_GAIN);
-
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mediaPlayer = new MediaPlayer();
     }
 
@@ -44,7 +42,6 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
                 callbacks.updateProgress(mediaPlayer.getCurrentPosition());
             }
         };
-
 
         return START_NOT_STICKY;
     }
@@ -119,7 +116,10 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
 
             case AudioManager.AUDIOFOCUS_LOSS:
                 // Lost focus for an unbounded amount of time: stop playback and release media player
-                mediaPlayer.release();
+                Log.e(TAG, "onAudioFocusChange: Lost");
+                callbacks.completion();
+                handler.removeCallbacks(runnable);
+                mediaPlayer.reset();
                 break;
 
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
@@ -150,6 +150,7 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
 
     public void playMedia() {
         mediaPlayer.start();
+        callbacks.playing();
     }
 
     public void registerClient(Activity activity) {
@@ -159,6 +160,8 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
     public void playMedia(int numero) {
         Log.e(TAG, "playMedia: ");
         initStream(numero);
+        audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN);
     }
 
     public void stopMedia() {
@@ -175,6 +178,7 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
                 @Override
                 public void onSeekComplete(MediaPlayer mp) {
                     mp.start();
+                    callbacks.playing();
                 }
             });
         }
@@ -186,6 +190,8 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
         void durationMedia(int duration);
 
         void completion();
+
+        void playing();
     }
 
     public class LocalBinder extends Binder {

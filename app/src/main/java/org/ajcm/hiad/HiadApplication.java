@@ -26,18 +26,28 @@ public class HiadApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        DatabaseHelper databaseHelper = new DatabaseHelper(getApplicationContext());
-        databaseHelper.checkUpdate();
-        MobileAds.initialize(getApplicationContext(), "ca-app-pub-5411285117883478~9340686141");
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        auth.signInAnonymously().addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+        new Thread(new Runnable() {
             @Override
-            public void onSuccess(AuthResult authResult) {
+            public void run() {
+                DatabaseHelper databaseHelper = new DatabaseHelper(getApplicationContext());
+                databaseHelper.checkUpdate();
+                MobileAds.initialize(getApplicationContext(), "ca-app-pub-5411285117883478~9340686141");
+                FirebaseAuth auth = FirebaseAuth.getInstance();
+                auth.signInAnonymously().addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+                    @Override
+                    public void onSuccess(AuthResult authResult) {
+                        if (BuildConfig.DEBUG) {
+                            Log.e(TAG, "onSuccess: sesion anonima");
+                        }
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "onFailure: falla en la sesion anonima");
+                    }
+                });
             }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-            }
-        });
+        }).run();
+
     }
 }

@@ -31,6 +31,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -63,26 +64,23 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
     private static final String TOOLBAR_PANEL_TITLE = "toolbar_panel_title";
     private static final String NUM_STRING = "num_string";
     private static final String NUMERO = "numero";
-    private static final int SEARCH_HIMNO = 7;
     private static final String TEXT_HIMNO = "text_himno";
-    private static final String TEXT_SIZE = "text_size";
+    private static final int SEARCH_HIMNO = 777;
+    private static final int OLD_LIMIT = 527;
+    private static final int NEW_LIMIT = 613;
 
     private ZoomTextView textHimno;
     private TextView numberHimno;
     private TextView toolbarTitle;
     private TextView placeholderHimno;
     private SlidingUpPanelLayout upPanelLayout;
-    private Toolbar toolbarPanel;
     private DBAdapter dbAdapter;
     private ArrayList<Himno> himnos;
 
     private boolean versionHimno;
-    private float textSize;
     private String numString;
     private int numero;
     private int limit;
-    private static final int OLD_LIMIT = 527;
-    private static final int NEW_LIMIT = 613;
     private boolean firstPlay;
 
     private boolean toastClose;
@@ -113,18 +111,16 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            setSupportActionBar(toolbar);
+        }
 
         adsMethod();
         analitycsMethod();
 
         limit = NEW_LIMIT;
         numString = "";
-        textSize = 20;
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        if (toolbar != null) {
-            setSupportActionBar(toolbar);
-        }
 
         dbAdapter = new DBAdapter(getApplicationContext());
         getData();
@@ -172,7 +168,6 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-
             }
 
             @Override
@@ -468,8 +463,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 mediaPlayer.setDataSource(himnoPath);
                 mediaPlayer.prepare();
                 musicDuration.setText(getDate(mediaPlayer.getDuration()));
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IOException ignored) {
             }
         }
     }
@@ -516,8 +510,6 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
 
     private void setupUpPanel() {
         toolbarTitle = (TextView) findViewById(R.id.toolbar_title);
-        toolbarPanel = (Toolbar) findViewById(R.id.toolbar_panel);
-
         upPanelLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
         upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
         upPanelLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
@@ -624,9 +616,6 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
             MediaListenService.LocalBinder binder = (MediaListenService.LocalBinder) service;
             listenService = binder.getServiceInstance(); //Get instance of your service!
             listenService.registerClient(MainActivity.this); //Activity register in the service as client for callabcks!
-            if (listenService.isPlaying()) {
-                buttonPlay.setImageResource(R.drawable.ic_pause_circle_filled_black_36dp);
-            }
 //            tvServiceState.setText("Connected to service...");
 //            tbStartTask.setEnabled(true);
         }
@@ -655,6 +644,11 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
     public void completion() {
         firstPlay = false;
         buttonPlay.setImageResource(R.drawable.ic_play_circle_filled_black_36dp);
+    }
+
+    @Override
+    public void playing() {
+        buttonPlay.setImageResource(R.drawable.ic_pause_circle_filled_black_36dp);
     }
 
     @Override
@@ -731,7 +725,6 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                     musicSize.setText(getDate(himnos.get(numero - 1).getSize()));
                 }
             });
-
         }
     }
 }
