@@ -19,6 +19,7 @@ public class WelcomeActivity extends AppCompatActivity {
 
     private ViewPager viewPager;
     private Button buttonWelcome;
+    private int limitPage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,10 +29,11 @@ public class WelcomeActivity extends AppCompatActivity {
         viewPager.setAdapter(new WelcomeAdapter(getSupportFragmentManager()));
         viewPager.setPageTransformer(false, new WelcomePageTransformer());
         buttonWelcome = (Button) findViewById(R.id.button_welcome);
+        limitPage = 2;
         buttonWelcome.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (viewPager.getCurrentItem() == 1) {
+                if (viewPager.getCurrentItem() == limitPage) {
                     startActivity(new Intent(WelcomeActivity.this, MainActivity.class));
                     finish();
                     new UserPreferences(getApplicationContext()).putBoolean(KEY_WELCOME, true);
@@ -48,7 +50,7 @@ public class WelcomeActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
-                if (position < 1) {
+                if (position < limitPage) {
                     buttonWelcome.setText("siguiente");
                 } else {
                     buttonWelcome.setText("finalizar");

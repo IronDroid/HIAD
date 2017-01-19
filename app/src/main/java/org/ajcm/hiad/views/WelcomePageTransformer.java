@@ -55,7 +55,7 @@ public class WelcomePageTransformer implements ViewPager.PageTransformer {
             // fade, but the animation should also slowly move
             // down and out of the screen
             View description = page.findViewById(R.id.description);
-            description.setTranslationY(-pageWidthTimesPosition / 2f);
+            description.setTranslationX(pageWidthTimesPosition / 2f);
             description.setAlpha(1.0f - absPosition);
 
             // Now, we want the image to move to the right,
@@ -68,7 +68,7 @@ public class WelcomePageTransformer implements ViewPager.PageTransformer {
             // In other words, we need to check that we're on
             // the correct page and that the View in question
             // isn't null.
-            if (pagePosition == 0 && computer != null) {
+            if (computer != null) {
                 computer.setAlpha(1.0f - absPosition);
                 computer.setTranslationX(-pageWidthTimesPosition * 1.5f);
             }

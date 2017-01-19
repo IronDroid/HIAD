@@ -168,6 +168,8 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
         Log.e(TAG, "stopMedia: ");
         mediaPlayer.stop();
         handler.removeCallbacks(runnable);
+        audioManager.abandonAudioFocus(this);
+
     }
 
     public void setSeek(final int position) {
