@@ -70,12 +70,12 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
 
     @Override
     public void onDestroy() {
+        super.onDestroy();
         handler.removeCallbacks(runnable);
+        audioManager.abandonAudioFocus(this);
         if (mediaPlayer != null) {
             mediaPlayer.release();
         }
-        Log.e(TAG, "onDestroy: " + mediaPlayer);
-        super.onDestroy();
     }
 
     @Override
