@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -29,9 +28,9 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.ivbaranov.mfb.MaterialFavoriteButton;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
-import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -44,6 +43,8 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import org.ajcm.hiad.R;
 import org.ajcm.hiad.dataset.DBAdapter;
 import org.ajcm.hiad.models.Himno;
+import org.ajcm.hiad.models.Himno1962;
+import org.ajcm.hiad.models.Himno2008;
 import org.ajcm.hiad.services.MediaListenService;
 import org.ajcm.hiad.utils.ConnectionUtils;
 import org.ajcm.hiad.utils.FileUtils;
@@ -65,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
     private static final String NUM_STRING = "num_string";
     private static final String NUMERO = "numero";
     private static final String TEXT_HIMNO = "text_himno";
-    private static final int SEARCH_HIMNO = 777;
+    private static final int REQUEST_SEARCH_HIMNO = 777;
     private static final int OLD_LIMIT = 527;
     private static final int NEW_LIMIT = 613;
 
@@ -75,9 +76,9 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
     private TextView placeholderHimno;
     private SlidingUpPanelLayout upPanelLayout;
     private DBAdapter dbAdapter;
-    private ArrayList<Himno> himnos;
+    private ArrayList<? extends Himno> himnos;
 
-    private boolean versionHimno;
+    private boolean version2008 = true;
     private String numString;
     private int numero;
     private int limit;
@@ -103,6 +104,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
     private TextView musicDuration;
     private TextView musicProcent;
     private ProgressBar musicProgress;
+    private MaterialFavoriteButton favoriteButton;
 
     private StorageReference reference;
     private FileDownloadTask fileDownloadTask;
@@ -127,6 +129,21 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
 
         numberHimno = (TextView) findViewById(R.id.number_himno);
         textHimno = (ZoomTextView) findViewById(R.id.text_himno);
+        favoriteButton = (MaterialFavoriteButton) findViewById(R.id.fav_button);
+        favoriteButton.setOnFavoriteAnimationEndListener(new MaterialFavoriteButton.OnFavoriteAnimationEndListener() {
+            @Override
+            public void onAnimationEnd(MaterialFavoriteButton buttonView, boolean favorite) {
+                // TODO: 14-07-17 guardar el himno favorito
+                if (upPanelLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED) {
+                    dbAdapter.setFav(numero, favorite, version2008);
+                    if (version2008) {
+                        ((Himno2008) himnos.get(numero - 1)).setFavorito(favorite);
+                    } else {
+                        ((Himno1962) himnos.get(numero - 1)).setFavorito(favorite);
+                    }
+                }
+            }
+        });
         placeholderHimno = (TextView) findViewById(R.id.placeholder_himno);
 
         setupUpPanel();
@@ -244,11 +261,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
 
     private void getData() {
         dbAdapter.open();
-        himnos = new ArrayList<>();
-        Cursor allHimno = dbAdapter.getAllHimno(versionHimno);
-        while (allHimno.moveToNext()) {
-            himnos.add(Himno.fromCursor(allHimno));
-        }
+        himnos = dbAdapter.getAllHimno(version2008);
         dbAdapter.close();
     }
 
@@ -277,6 +290,14 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
             seekBar.setMax(savedInstanceState.getInt("seek_max"));
             musicDuration.setText(savedInstanceState.getString("duration"));
             firstPlay = savedInstanceState.getBoolean("first_play");
+            if (savedInstanceState.getBoolean("is_playing")) {
+                buttonPlay.setImageResource(R.drawable.ic_pause_circle_filled_black_36dp);
+            } else {
+                buttonPlay.setImageResource(R.drawable.ic_play_circle_filled_black_36dp);
+            }
+            if (numero > 0) {
+                musicSize.setText(FileUtils.humanReadableByteCount(((Himno2008) himnos.get(numero - 1)).getFileSize()));
+            }
             setUpPanelControls();
         }
     }
@@ -289,6 +310,9 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         outState.putString(NUM_STRING, numString);
         outState.putString(TEXT_HIMNO, textHimno.getText().toString());
         outState.putInt(NUMERO, numero);
+        if (listenService != null) {
+            outState.putBoolean("is_playing", listenService.isPlaying());
+        }
         outState.putInt("seek_max", seekBar.getMax());
         outState.putString("duration", musicDuration.getText().toString());
         outState.putBoolean("first_play", firstPlay);
@@ -303,32 +327,37 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        if (upPanelLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED) {
+            return false;
+        }
         switch (item.getItemId()) {
             case R.id.action_search:
-                startActivityForResult(new Intent(this, SearchActivity.class).putExtra("version", versionHimno), SEARCH_HIMNO);
+                startActivityForResult(new Intent(this, SearchActivity.class).putExtra("version", version2008), REQUEST_SEARCH_HIMNO);
                 return true;
 
             case R.id.action_version_himno:
                 if (item.isChecked()) {
-                    // himnario Nuevo
-                    versionHimno = false;
-                    limit = NEW_LIMIT;
                     item.setChecked(false);
+                    version2008 = true;
+                    limit = NEW_LIMIT;
                 } else {
+                    item.setChecked(true);
+                    version2008 = false;
+                    limit = OLD_LIMIT;
+
                     Bundle params = new Bundle();
                     params.putString("Category", "Action");
                     params.putString("Action", "Version_Antiguo");
                     analytics.logEvent("Change_version", params);
-                    // himanrio antiguo
-                    versionHimno = true;
-                    limit = OLD_LIMIT;
-                    item.setChecked(true);
                 }
                 getData();
+
+                // TODO: 14-07-17 agrupar estas funciones
                 numberHimno.setText("");
                 numString = "";
                 numero = 0;
                 setPlaceholderHimno();
+
                 return true;
 
             case R.id.action_rate:
@@ -345,7 +374,11 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 return true;
 
             case R.id.action_music:
-                startActivity(new Intent(MainActivity.this, MusicActivity.class));
+                if (this.version2008) {
+                    startActivity(new Intent(MainActivity.this, MusicActivity.class));
+                } else {
+                    Toast.makeText(this, "No Disponible en la version antigua del himnario", Toast.LENGTH_SHORT).show();
+                }
                 return true;
 
             case R.id.action_about:
@@ -392,37 +425,13 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
     }
 
     @Override
-    public void onPause() {
-        if (adView != null) {
-            adView.pause();
-        }
-        super.onPause();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (adView != null) {
-            adView.resume();
-        }
-    }
-
-    @Override
-    public void onDestroy() {
-        if (adView != null) {
-            adView.destroy();
-        }
-
-        super.onDestroy();
-    }
-
-    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
             numero = data.getExtras().getInt("numero", 0);
             Log.e(TAG, "result ok: " + numero);
             if (numero > 0) {
+
                 placeholderHimno.setText("");
                 numString = "" + numero;
                 upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
@@ -430,6 +439,10 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 toolbarTitle.setText(titleShow);
                 numberHimno.setText(titleShow);
                 textHimno.setText(himnos.get(numero - 1).getLetra());
+                if (version2008) {
+                    musicSize.setText(FileUtils.humanReadableByteCount(((Himno2008) himnos.get(numero - 1)).getFileSize()));
+                }
+                setUpPanelControls();
             }
         }
     }
@@ -456,7 +469,12 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
             musicProgress.setIndeterminate(false);
             buttonDonwload.setVisibility(View.VISIBLE);
             buttonCancel.setVisibility(View.GONE);
-            musicSize.setText(FileUtils.humanReadableByteCount(himnos.get(numero - 1).getSize()));
+            if (version2008) {
+                favoriteButton.setFavorite(((Himno2008) himnos.get(numero - 1)).isFavorito());
+                musicSize.setText(FileUtils.humanReadableByteCount(((Himno2008) himnos.get(numero - 1)).getFileSize()));
+            } else {
+                favoriteButton.setFavorite(((Himno1962) himnos.get(numero - 1)).isFavorito());
+            }
             String himnoPath = FileUtils.getDirHimnos(getApplicationContext()).getAbsoluteFile() + "/" + FileUtils.getStringNumber(numero) + ".ogg";
             MediaPlayer mediaPlayer = new MediaPlayer();
             try {
@@ -522,6 +540,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 cleanNum();
                 listenService.stopMedia();
                 firstPlay = false;
+                favoriteButton.setFavorite(false);
                 buttonPlay.setImageResource(R.drawable.ic_play_circle_filled_black_36dp);
             }
 
@@ -540,15 +559,15 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
     }
 
     private void setPlaceholderHimno() {
-        if (versionHimno) {
-            placeholderHimno.setText(R.string.placeholder_himno_old);
-        } else {
+        if (version2008) {
             placeholderHimno.setText(R.string.placeholder_himno);
+        } else {
+            placeholderHimno.setText(R.string.placeholder_himno_old);
         }
     }
 
     private void setUpPanelControls() {
-        if (versionHimno) {
+        if (!version2008) {
             layoutDownload.setVisibility(View.GONE);
             layoutPlay.setVisibility(View.GONE);
             return;
@@ -667,6 +686,31 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         Log.e(TAG, "onStart: ");
     }
 
+    @Override
+    public void onPause() {
+        if (adView != null) {
+            adView.pause();
+        }
+        super.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (adView != null) {
+            adView.resume();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        if (adView != null) {
+            adView.destroy();
+        }
+
+        super.onDestroy();
+    }
+
     private boolean isServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
@@ -677,16 +721,15 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         return false;
     }
 
+    // tiempo de la musica en minutos y segundos
     public static String getDate(long milliSeconds) {
-        // Create a DateFormatter object for displaying date in specified format.
         SimpleDateFormat formatter = new SimpleDateFormat("mm:ss");
-
-        // Create a calendar object that will convert the date and time value in milliseconds to date.
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(milliSeconds);
         return formatter.format(calendar.getTime());
     }
 
+    // descarga de la musica del himno
     private void donwloadMusic(int numberInt) {
         String number = FileUtils.getStringNumber(numberInt);
         File dirHimnos = new File(getFilesDir().getAbsolutePath() + "/himnos/");
@@ -717,12 +760,17 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
                     layoutDownload.setVisibility(View.GONE);
                     layoutPlay.setVisibility(View.VISIBLE);
+                    musicProgress.setProgress(0);
+                    musicProcent.setText("");
+                    musicProgress.setVisibility(View.GONE);
+                    musicProcent.setVisibility(View.GONE);
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
+                    Log.e(TAG, "onFailure: " + e.getMessage(), e);
                     musicProgress.setProgress(0);
-                    musicSize.setText(getDate(himnos.get(numero - 1).getSize()));
+                    musicSize.setText(FileUtils.humanReadableByteCount(((Himno2008) himnos.get(numero - 1)).getFileSize()));
                 }
             });
         }

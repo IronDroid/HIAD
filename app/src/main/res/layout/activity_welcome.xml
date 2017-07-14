@@ -15,22 +15,42 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#f5f5f5" />
+        android:background="#77f5f5f5" />
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="right"
-        android:orientation="horizontal"
-        android:padding="8dp">
+        android:layout_height="?attr/actionBarSize"
+        android:layout_gravity="center"
+        android:gravity="right|center_vertical"
+        android:orientation="horizontal">
+
+        <com.viewpagerindicator.CirclePageIndicator
+            android:id="@+id/circle_pager_indicator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:theme="@style/StyledIndicators" />
+
+        <ImageButton
+            android:id="@+id/button_next"
+            style="?attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical|right"
+            android:src="@drawable/ic_navigate_next_black_24dp"
+            android:tint="@android:color/white" />
 
         <Button
             android:id="@+id/button_welcome"
-            style="@style/Widget.AppCompat.Button.Borderless"
+            style="?attr/borderlessButtonStyle"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="siguiente"
-            android:textSize="20sp"
-            android:textColor="@color/whiteText" />
-    </LinearLayout>
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical|right"
+            android:layout_marginLeft="@dimen/activity_vertical_margin"
+            android:layout_marginRight="@dimen/activity_vertical_margin"
+            android:text="continuar"
+            android:textColor="@color/whiteText"
+            android:textSize="18sp"
+            android:visibility="gone" />
+    </FrameLayout>
 </LinearLayout>

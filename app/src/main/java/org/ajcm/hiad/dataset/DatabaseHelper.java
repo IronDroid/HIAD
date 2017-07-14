@@ -23,7 +23,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String VERSION_DB_PREF = "version_db";
     private Context context;
     private static final String DATABASE_NAME = "himnario";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
     private String pathDB;
     private UserPreferences preferences;
 
@@ -37,7 +37,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         this.context = context;
         preferences = new UserPreferences(this.context);
         pathDB = "/data/data/" + context.getPackageName() + "/databases/" + DATABASE_NAME;
-        if (!preferences.getBoolean("copy") ) {
+        if (!preferences.getBoolean("copy")) {
             loadDB();
         }
     }
@@ -53,10 +53,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         Log.e(TAG, "onUpgrade: ");
+        preferences.putBoolean("copy", false);
         onCreate(db);
     }
 
-    public void copydatabase(Context context) throws IOException {
+    private void copydatabase(Context context) throws IOException {
         try {
             getReadableDatabase();
         } catch (Exception ignored) {
@@ -93,8 +94,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return false;
     }
 
-    public void checkUpdate(){
-        if (preferences.getInt(VERSION_DB_PREF) < DATABASE_VERSION){
+    public void checkUpdate() {
+        if (preferences.getInt(VERSION_DB_PREF) < DATABASE_VERSION) {
             File dbFile = new File(pathDB);
             Log.e(TAG, "onUpgrade: delete DB " + dbFile.delete());
             preferences.putBoolean("copy", false);

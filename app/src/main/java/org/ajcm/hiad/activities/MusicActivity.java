@@ -2,6 +2,8 @@ package org.ajcm.hiad.activities;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -12,11 +14,14 @@ import android.view.WindowManager;
 
 import org.ajcm.hiad.R;
 import org.ajcm.hiad.adapters.MusicViewAdapter;
+import org.ajcm.hiad.adapters.PagerAdapter;
 
 public class MusicActivity extends AppCompatActivity {
 
     private static final String TAG = "MusicActivity";
-    private RecyclerView recyclerView;
+    private ViewPager viewPager;
+    private TabLayout tabLayout;
+    private PagerAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,11 +36,14 @@ public class MusicActivity extends AppCompatActivity {
             Window window = getWindow();
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
+            getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimary));
         }
 
-        recyclerView = (RecyclerView) findViewById(R.id.music_list);
-        recyclerView.setLayoutManager(new LinearLayoutManager(MusicActivity.this));
-        recyclerView.setAdapter(new MusicViewAdapter(getApplicationContext()));
+        viewPager = (ViewPager) findViewById(R.id.viewpager);
+        tabLayout = (TabLayout) findViewById(R.id.sliding_tabs);
+        adapter = new PagerAdapter(getSupportFragmentManager());
+        viewPager.setAdapter(adapter);
+        tabLayout.setupWithViewPager(viewPager);
     }
 
     @Override

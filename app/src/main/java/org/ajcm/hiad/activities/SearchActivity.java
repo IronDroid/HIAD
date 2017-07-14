@@ -2,6 +2,7 @@ package org.ajcm.hiad.activities;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -22,6 +23,8 @@ import org.ajcm.hiad.R;
 import org.ajcm.hiad.adapters.HimnoAdapter;
 import org.ajcm.hiad.dataset.DBAdapter;
 import org.ajcm.hiad.models.Himno;
+import org.ajcm.hiad.models.Himno1962;
+import org.ajcm.hiad.models.Himno2008;
 
 import java.util.ArrayList;
 
@@ -44,6 +47,10 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimary));
+        }
+
         analitycsMethod();
         listView = (ListView) findViewById(R.id.listView);
 
@@ -53,11 +60,15 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
         versionHimno = getIntent().getBooleanExtra("version", false);
         Cursor himnoASC = dbAdapter.getAllHimnoASC(versionHimno);
         while (himnoASC.moveToNext()) {
-            himnos.add(Himno.fromCursor(himnoASC));
+            if (versionHimno){
+                himnos.add(Himno2008.fromCursor(himnoASC));
+            } else {
+                himnos.add(Himno1962.fromCursor(himnoASC));
+            }
         }
         dbAdapter.close();
 
-        himnoAdapter = new HimnoAdapter(this, himnos);
+        himnoAdapter = new HimnoAdapter(this, himnos, versionHimno);
         listView.setAdapter(himnoAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -117,7 +128,11 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
             himnoForTitle = dbAdapter.getAllHimnoASC(versionHimno);
         }
         while (himnoForTitle.moveToNext()) {
-            himnos.add(Himno.fromCursor(himnoForTitle));
+            if (versionHimno){
+                himnos.add(Himno2008.fromCursor(himnoForTitle));
+            } else {
+                himnos.add(Himno1962.fromCursor(himnoForTitle));
+            }
         }
         dbAdapter.close();
         himnoAdapter.setData(himnos);

@@ -61,7 +61,7 @@ public class WelcomePageTransformer implements ViewPager.PageTransformer {
             // Now, we want the image to move to the right,
             // i.e. in the opposite direction of the rest of the
             // content while fading out
-            View computer = page.findViewById(R.id.computer);
+            View computer = page.findViewById(R.id.main_inage);
 
             // We're attempting to create an effect for a View
             // specific to one of the pages in our ViewPager.

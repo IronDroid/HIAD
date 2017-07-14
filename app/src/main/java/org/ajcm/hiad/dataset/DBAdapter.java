@@ -5,14 +5,13 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.LinkedList;
+import org.ajcm.hiad.models.Himno;
+import org.ajcm.hiad.models.Himno1962;
+import org.ajcm.hiad.models.Himno2008;
+
+import java.util.ArrayList;
 
 /**
  * @author Jhon_Li
@@ -28,64 +27,40 @@ public class DBAdapter {
 
     public DBAdapter(Context context) {
         this.context = context;
-        Log.e(TAG, "DBAdapter: ");
         DBHelper = new DatabaseHelper(this.context);
     }
 
-    public String getPath() {
-        return db.getPath();
-    }
-
-    public long insert(int num, String titulo, String letra) {
-        ContentValues values = new ContentValues();
-        values.put(DatabaseHelper.Columns.numero.name(), num);
-        values.put(DatabaseHelper.Columns.titulo.name(), titulo);
-        values.put(DatabaseHelper.Columns.letra.name(), letra);
-        return db.insert(DATABASE_TABLE_2008, null, values);
-    }
-
-    public Cursor getHimno(long id, boolean versionH) {
-        Cursor res = null;
-        res = db.query(tableVersion(versionH), null,DatabaseHelper.Columns.numero.name() + " = " + id, null, null, null, null);
-        if (res != null) {
-            res.moveToFirst();
-        }
-        return res;
-    }
-
-    public Cursor getHimno(String title, boolean versionH) {
-        Cursor res = null;
-        res = db.query(tableVersion(versionH), null, DatabaseHelper.Columns.titulo.name() + "='" + title + "'", null, null, null, null);
-        if (res != null) {
-            res.moveToFirst();
-        }
-        return res;
-    }
-
-    public LinkedList<String> getAllTitles(boolean versionH) {
-        LinkedList<String> lls = null;
-        Cursor res = null;
-        res = db.query(tableVersion(versionH), null, null, null, null, null, null);
-        if (res != null) {
-            lls = new LinkedList<>();
-            while (res.moveToNext()) {
-                lls.add("  " + DatabaseHelper.Columns.titulo.name() + "  ");
+    public ArrayList<? extends Himno> getAllHimno(boolean version2008) {
+        open();
+        ArrayList<Himno> himnos = new ArrayList<>();
+        Cursor query = db.query(tableVersion(version2008), null, null, null, null, null, null);
+        Log.e(TAG, "getAllHimno: " + query.getCount());
+        while (query.moveToNext()) {
+            if (version2008) {
+                himnos.add(Himno2008.fromCursor(query));
+            } else {
+                himnos.add(Himno1962.fromCursor(query));
             }
         }
-        return lls;
+
+        query.close();
+        return himnos;
     }
 
-    public Cursor getAllHimno(boolean versionH) {
+    public void setFav(int numero, boolean fav, boolean version2008) {
         open();
-        return db.query(tableVersion(versionH), null, null, null, null, null, null);
+        ContentValues values = new ContentValues();
+        values.put(Himno2008.Columns.favorito.name(), fav);
+        db.update(tableVersion(version2008), values, Himno2008.Columns.numero.name() + " = " + numero, null);
+
     }
 
-    public Cursor getHimnoForTitle(String filter, boolean versionH) {
-        return db.query(tableVersion(versionH), null, DatabaseHelper.Columns.indice.name() + " LIKE '%" + filter + "%'", null, null, null, DatabaseHelper.Columns.titulo.name() + " ASC");
+    public Cursor getHimnoForTitle(String filter, boolean version2008) {
+        return db.query(tableVersion(version2008), null, DatabaseHelper.Columns.indice.name() + " LIKE '%" + filter + "%'", null, null, null,Himno2008.Columns.favorito + " DESC, "+ DatabaseHelper.Columns.indice.name() + " ASC");
     }
 
-    public Cursor getAllHimnoASC(boolean versionH) {
-        return db.query(tableVersion(versionH), null, null, null, null, null, DatabaseHelper.Columns.indice.name() + " ASC");
+    public Cursor getAllHimnoASC(boolean version2008) {
+        return db.query(tableVersion(version2008), null, null, null, null, null, Himno2008.Columns.favorito + " DESC, "+ DatabaseHelper.Columns.indice.name() + " ASC");
     }
 
     public DBAdapter open() throws SQLException {
@@ -97,7 +72,7 @@ public class DBAdapter {
         DBHelper.close();
     }
 
-    public String tableVersion(boolean version) {
-        return version ? DATABASE_TABLE_1962 : DATABASE_TABLE_2008;
+    public String tableVersion(boolean version2008) {
+        return version2008 ? DATABASE_TABLE_2008 : DATABASE_TABLE_1962;
     }
 }

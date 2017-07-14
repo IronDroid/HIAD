@@ -28,12 +28,14 @@ public class WelcomeAdapter extends FragmentPagerAdapter {
                 return WelcomeFragment.newInstance(position);
             case 2:
                 return WelcomeFragment.newInstance(position);
+            case 3:
+                return WelcomeFragment.newInstance(position);
         }
         return null;
     }
 
     @Override
     public int getCount() {
-        return 3;
+        return 4;
     }
 }

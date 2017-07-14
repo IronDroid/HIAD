@@ -3,6 +3,7 @@ package org.ajcm.hiad.adapters;
 import android.content.Context;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,6 +23,7 @@ import com.google.firebase.storage.StreamDownloadTask;
 import org.ajcm.hiad.R;
 import org.ajcm.hiad.dataset.DBAdapter;
 import org.ajcm.hiad.models.Himno;
+import org.ajcm.hiad.models.Himno2008;
 import org.ajcm.hiad.utils.FileUtils;
 
 import java.io.File;
@@ -37,20 +39,17 @@ public class MusicViewAdapter extends RecyclerView.Adapter<MusicViewAdapter.View
 
     private static final String TAG = "MusicViewAdapter";
     private Context context;
-    private ArrayList<Himno> himnos;
+    private int param;
+    private ArrayList<Himno2008> himnosDescargados;
+    private ArrayList<Himno2008> himnosPendientes;
     private FirebaseStorage storage;
     private ArrayList<Integer> himnosDownloaded;
 
-    public MusicViewAdapter(Context context) {
+    public MusicViewAdapter(Context context, int param, ArrayList<Himno2008> himnosDescargados, ArrayList<Himno2008> himnosPendientes) {
         this.context = context;
-        himnos = new ArrayList<>();
-        DBAdapter dbAdapter = new DBAdapter(this.context);
-        Cursor allHimno = dbAdapter.getAllHimno(false);
-        while (allHimno.moveToNext()) {
-            himnos.add(Himno.fromCursor(allHimno));
-        }
-        dbAdapter.close();
-
+        this.param = param;
+        this.himnosDescargados = himnosDescargados;
+        this.himnosPendientes = himnosPendientes;
         himnosDownloaded = FileUtils.getHimnosDownloaded(context);
         storage = FirebaseStorage.getInstance();
     }
@@ -64,67 +63,24 @@ public class MusicViewAdapter extends RecyclerView.Adapter<MusicViewAdapter.View
 
     @Override
     public void onBindViewHolder(final MusicViewAdapter.ViewHolder holder, int position) {
-        final Himno himno = himnos.get(position);
+        final Himno2008 himno = (param == 0) ? himnosDescargados.get(position) : himnosPendientes.get(position);
         holder.musicNumber.setText(String.valueOf(himno.getNumero()));
         holder.musicTitle.setText(himno.getTitulo());
-        holder.musicSize.setText(FileUtils.humanReadableByteCount(himno.getSize()));
+        holder.musicSize.setText(FileUtils.humanReadableByteCount(himno.getFileSize()));
         if (himnosDownloaded.contains(himno.getNumero())) {
-            holder.musicSize.setText(FileUtils.humanReadableByteCount(himno.getSize()) + " - Descargado");
+            holder.musicSize.setText(FileUtils.humanReadableByteCount(himno.getFileSize()) + " - Descargado");
         }
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                String number = FileUtils.getStringNumber(himno.getNumero());
-
-                String url = "gs://tu-himnario-adventista.appspot.com";
-                StorageReference reference = storage.getReferenceFromUrl(url);
-                StorageReference himnoRef = reference.child("himnos/" + number + ".ogg");
-
-                File dirHimnos = new File(context.getFilesDir().getAbsolutePath() + "/himnos/");
-                dirHimnos.mkdirs();
-
-                File file = new File(dirHimnos.getAbsolutePath() + "/" + number + ".ogg");
-                if (!file.exists()) {
-                    holder.musicSize.setVisibility(View.GONE);
-                    holder.progressBar.setIndeterminate(true);
-                    holder.progressBar.setVisibility(View.VISIBLE);
-                    holder.musicProcent.setVisibility(View.VISIBLE);
-
-                    himnoRef.getFile(file).addOnProgressListener(new OnProgressListener<FileDownloadTask.TaskSnapshot>() {
-                        @Override
-                        public void onProgress(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                            if (taskSnapshot.getBytesTransferred() > 1000) {
-                                holder.progressBar.setProgress((int) (taskSnapshot.getBytesTransferred() * 100 / taskSnapshot.getTotalByteCount()));
-                                holder.progressBar.setIndeterminate(false);
-                            }
-                            holder.musicProcent.setText(holder.progressBar.getProgress() + "%");
-                            Log.e(TAG, "onProgress: " + holder.progressBar.getProgress() + "%");
-                        }
-                    }).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
-                        @Override
-                        public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                            holder.musicSize.setVisibility(View.VISIBLE);
-                            holder.progressBar.setVisibility(View.GONE);
-                            holder.musicProcent.setVisibility(View.GONE);
-                            holder.musicSize.setText(FileUtils.humanReadableByteCount(himno.getSize()) + " - Descargado");
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.e(TAG, "onFailure: ", e);
-                        }
-                    });
-                } else {
-                    holder.musicSize.setText(FileUtils.humanReadableByteCount(himno.getSize()) + " - Descargado");
-                }
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        return himnos.size();
+        return param == 0 ? himnosDescargados.size() : himnosPendientes.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

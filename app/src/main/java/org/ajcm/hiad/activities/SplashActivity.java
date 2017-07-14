@@ -16,14 +16,14 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
-//        UserPreferences userPreferences = new UserPreferences(getApplicationContext());
-//        boolean welcome = userPreferences.getBoolean(KEY_WELCOME);
-//        if (welcome) {
-//            startActivity(new Intent(SplashActivity.this, MainActivity.class));
-//        } else {
-//            startActivity(new Intent(SplashActivity.this, WelcomeActivity.class));
-//        }
-        startActivity(new Intent(SplashActivity.this, WelcomeActivity.class));
+        UserPreferences userPreferences = new UserPreferences(getApplicationContext());
+        boolean welcome = userPreferences.getBoolean(KEY_WELCOME);
+        if (welcome) {
+            startActivity(new Intent(SplashActivity.this, MainActivity.class));
+        } else {
+            startActivity(new Intent(SplashActivity.this, WelcomeActivity.class));
+        }
+//        startActivity(new Intent(SplashActivity.this, WelcomeActivity.class));
         finish();
     }
 }

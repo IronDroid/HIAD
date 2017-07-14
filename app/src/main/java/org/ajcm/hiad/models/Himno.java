@@ -7,11 +7,19 @@ import org.ajcm.hiad.dataset.DatabaseHelper;
 /**
  * Created by jhonlimaster on 07-12-15.
  */
-public class Himno {
+public abstract class Himno {
     private int numero;
     private String titulo;
     private String letra;
-    private long size;
+    private String indice;
+
+    public static Himno fromCursor(Cursor cursor, boolean version1962){
+        if (version1962){
+            return Himno1962.fromCursor(cursor);
+        } else {
+            return Himno2008.fromCursor(cursor);
+        }
+    }
 
     public int getNumero() {
         return numero;
@@ -37,20 +45,11 @@ public class Himno {
         this.letra = letra;
     }
 
-    public long getSize() {
-        return size;
+    public String getIndice() {
+        return indice;
     }
 
-    public void setSize(long size) {
-        this.size = size;
-    }
-
-    public static Himno fromCursor(Cursor cursor){
-        Himno himno = new Himno();
-        himno.setNumero(cursor.getInt(DatabaseHelper.Columns.numero.ordinal()));
-        himno.setTitulo(cursor.getString(DatabaseHelper.Columns.titulo.ordinal()));
-        himno.setLetra(cursor.getString(DatabaseHelper.Columns.letra.ordinal()));
-        himno.setSize(cursor.getInt(DatabaseHelper.Columns.file_size.ordinal()));
-        return himno;
+    public void setIndice(String indice) {
+        this.indice = indice;
     }
 }

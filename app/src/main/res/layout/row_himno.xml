@@ -16,7 +16,18 @@
         android:id="@+id/titulo_himno"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:padding="@dimen/activity_vertical_margin"
         android:text="titulo himno"
         android:textColor="@color/blackText" />
+
+    <ImageView
+        android:id="@+id/image_fav"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:padding="@dimen/activity_vertical_margin_half"
+        android:src="@drawable/ic_star_white_24dp"
+        android:tint="@color/colorAccent" />
 </LinearLayout>

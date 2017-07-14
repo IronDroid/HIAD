@@ -6,10 +6,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.ajcm.hiad.R;
 import org.ajcm.hiad.models.Himno;
+import org.ajcm.hiad.models.Himno1962;
+import org.ajcm.hiad.models.Himno2008;
 
 import java.util.ArrayList;
 
@@ -21,10 +24,12 @@ public class HimnoAdapter extends BaseAdapter {
     private static final String TAG = "HimnoAdapter";
     private Context context;
     private ArrayList<Himno> himnos;
+    private boolean version2008;
 
-    public HimnoAdapter(Context context, ArrayList<Himno> himnos) {
+    public HimnoAdapter(Context context, ArrayList<Himno> himnos, boolean version2008) {
         this.context = context;
         this.himnos = himnos;
+        this.version2008 = version2008;
     }
 
     @Override
@@ -52,10 +57,21 @@ public class HimnoAdapter extends BaseAdapter {
         } else {
             viewHolder = (ViewHolder) view.getTag();
         }
-        final Himno himno = himnos.get(i);
+        Himno himno = himnos.get(i);
 
         viewHolder.numeroHimno.setText(String.valueOf(himno.getNumero()));
         viewHolder.tituloHimno.setText(himno.getTitulo());
+        boolean fav;
+        if (version2008){
+            fav = ((Himno2008)himno).isFavorito();
+        } else {
+            fav = ((Himno1962)himno).isFavorito();
+        }
+        if (fav){
+            viewHolder.imageFav.setVisibility(View.VISIBLE);
+        } else {
+            viewHolder.imageFav.setVisibility(View.GONE);
+        }
 
         return view;
     }
@@ -67,10 +83,12 @@ public class HimnoAdapter extends BaseAdapter {
     public class ViewHolder {
         TextView numeroHimno;
         TextView tituloHimno;
+        ImageView imageFav;
 
         public ViewHolder(View itemView) {
             numeroHimno = (TextView) itemView.findViewById(R.id.numero_himno);
             tituloHimno = (TextView) itemView.findViewById(R.id.titulo_himno);
+            imageFav = (ImageView) itemView.findViewById(R.id.image_fav);
         }
     }
 }

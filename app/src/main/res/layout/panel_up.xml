@@ -47,8 +47,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:padding="@dimen/activity_vertical_margin"
+                android:textAlignment="center"
                 android:textSize="20dp" />
         </ScrollView>
+
+        <com.github.ivbaranov.mfb.MaterialFavoriteButton
+            android:id="@+id/fav_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:tint="@color/colorAccent" />
     </FrameLayout>
 
     <include layout="@layout/layout_download" />
