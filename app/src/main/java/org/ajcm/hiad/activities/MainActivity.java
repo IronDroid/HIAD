@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
     private static final String TOOLBAR_PANEL_TITLE = "toolbar_panel_title";
     private static final String NUM_STRING = "num_string";
     private static final String NUMERO = "numero";
+    private static final String VERSION_HIMNOS = "version";
     private static final String TEXT_HIMNO = "text_himno";
     private static final int REQUEST_SEARCH_HIMNO = 777;
     private static final int OLD_LIMIT = 527;
@@ -124,17 +125,34 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         limit = NEW_LIMIT;
         numString = "";
 
-        dbAdapter = new DBAdapter(getApplicationContext());
-        getData();
-
         numberHimno = (TextView) findViewById(R.id.number_himno);
         textHimno = (ZoomTextView) findViewById(R.id.text_himno);
         favoriteButton = (MaterialFavoriteButton) findViewById(R.id.fav_button);
+        placeholderHimno = (TextView) findViewById(R.id.placeholder_himno);
+        layoutDownload = (LinearLayout) findViewById(R.id.layout_download);
+        layoutPlay = (LinearLayout) findViewById(R.id.layout_play);
+        seekBar = (SeekBar) findViewById(R.id.seek_bar);
+        buttonDonwload = (ImageButton) findViewById(R.id.music_download);
+        buttonCancel = (ImageButton) findViewById(R.id.music_cancel);
+        buttonPlay = (ImageButton) findViewById(R.id.button_play);
+        musicSize = (TextView) findViewById(R.id.music_size);
+        musicTime = (TextView) findViewById(R.id.music_time);
+        musicDuration = (TextView) findViewById(R.id.music_duration);
+        musicProcent = (TextView) findViewById(R.id.music_procent);
+        musicProgress = (ProgressBar) findViewById(R.id.music_progress);
+
+        setupUpPanel();
+        restoreDataSaved(savedInstanceState);
+        setUpPanelControls();
+
+        dbAdapter = new DBAdapter(getApplicationContext());
+        getData();
+
         favoriteButton.setOnFavoriteAnimationEndListener(new MaterialFavoriteButton.OnFavoriteAnimationEndListener() {
             @Override
             public void onAnimationEnd(MaterialFavoriteButton buttonView, boolean favorite) {
                 // TODO: 14-07-17 guardar el himno favorito
-                if (upPanelLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED) {
+                if (upPanelLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED && numero > 0) {
                     dbAdapter.setFav(numero, favorite, version2008);
                     if (version2008) {
                         ((Himno2008) himnos.get(numero - 1)).setFavorito(favorite);
@@ -144,9 +162,6 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 }
             }
         });
-        placeholderHimno = (TextView) findViewById(R.id.placeholder_himno);
-
-        setupUpPanel();
 
         ImageView backSpaceButton = (ImageView) findViewById(R.id.back_space);
         backSpaceButton.setOnLongClickListener(new View.OnLongClickListener() {
@@ -165,9 +180,6 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
             getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimary));
         }
 
-        layoutDownload = (LinearLayout) findViewById(R.id.layout_download);
-        layoutPlay = (LinearLayout) findViewById(R.id.layout_play);
-        seekBar = (SeekBar) findViewById(R.id.seek_bar);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int position, boolean user) {
@@ -191,7 +203,6 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
-        buttonDonwload = (ImageButton) findViewById(R.id.music_download);
         buttonDonwload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -205,7 +216,6 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 }
             }
         });
-        buttonCancel = (ImageButton) findViewById(R.id.music_cancel);
         buttonCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -221,7 +231,6 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 Log.e(TAG, "on Click Cancel: " + file.delete());
             }
         });
-        buttonPlay = (ImageButton) findViewById(R.id.button_play);
         buttonPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -240,13 +249,6 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 }
             }
         });
-        musicSize = (TextView) findViewById(R.id.music_size);
-        musicTime = (TextView) findViewById(R.id.music_time);
-        musicDuration = (TextView) findViewById(R.id.music_duration);
-        musicProcent = (TextView) findViewById(R.id.music_procent);
-        musicProgress = (ProgressBar) findViewById(R.id.music_progress);
-
-        restoreDataSaved(savedInstanceState);
 
         intentService = new Intent(this, MediaListenService.class);
         if (!isServiceRunning()) {
@@ -263,6 +265,17 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         dbAdapter.open();
         himnos = dbAdapter.getAllHimno(version2008);
         dbAdapter.close();
+        if (numero > 0) {
+            if (version2008) {
+                favoriteButton.setFavorite(((Himno2008) himnos.get(numero - 1)).isFavorito());
+            } else {
+                layoutDownload.setVisibility(View.GONE);
+                favoriteButton.setFavorite(((Himno1962) himnos.get(numero - 1)).isFavorito());
+            }
+        }
+        if (numero > 0 && version2008) {
+            musicSize.setText(FileUtils.humanReadableByteCount(((Himno2008) himnos.get(numero - 1)).getFileSize()));
+        }
     }
 
     private void adsMethod() {
@@ -278,11 +291,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
     private void restoreDataSaved(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             numberHimno.setText(savedInstanceState.getString(CURRENT_TEXT_NUMBER));
-            if (numberHimno.getText().toString().length() > 0) {
-                placeholderHimno.setText("");
-            } else {
-                setPlaceholderHimno();
-            }
+            version2008 = savedInstanceState.getBoolean(VERSION_HIMNOS);
             toolbarTitle.setText(savedInstanceState.getString(TOOLBAR_PANEL_TITLE));
             numString = savedInstanceState.getString(NUM_STRING);
             textHimno.setText(savedInstanceState.getString(TEXT_HIMNO));
@@ -290,15 +299,16 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
             seekBar.setMax(savedInstanceState.getInt("seek_max"));
             musicDuration.setText(savedInstanceState.getString("duration"));
             firstPlay = savedInstanceState.getBoolean("first_play");
+            if (numberHimno.getText().toString().length() > 0) {
+                placeholderHimno.setText("");
+            } else {
+                setPlaceholderHimno();
+            }
             if (savedInstanceState.getBoolean("is_playing")) {
                 buttonPlay.setImageResource(R.drawable.ic_pause_circle_filled_black_36dp);
             } else {
                 buttonPlay.setImageResource(R.drawable.ic_play_circle_filled_black_36dp);
             }
-            if (numero > 0) {
-                musicSize.setText(FileUtils.humanReadableByteCount(((Himno2008) himnos.get(numero - 1)).getFileSize()));
-            }
-            setUpPanelControls();
         }
     }
 
@@ -313,6 +323,8 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         if (listenService != null) {
             outState.putBoolean("is_playing", listenService.isPlaying());
         }
+        Log.e(TAG, "onSaveInstanceState: se guarda version " + version2008);
+        outState.putBoolean(VERSION_HIMNOS, version2008);
         outState.putInt("seek_max", seekBar.getMax());
         outState.putString("duration", musicDuration.getText().toString());
         outState.putBoolean("first_play", firstPlay);
@@ -321,6 +333,10 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        MenuItem item = menu.findItem(R.id.action_version_himno);
+        if (!version2008) {
+            item.setChecked(true);
+        }
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -375,10 +391,14 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
 
             case R.id.action_music:
                 if (this.version2008) {
-                    startActivity(new Intent(MainActivity.this, MusicActivity.class));
+                    startActivityForResult(new Intent(MainActivity.this, MusicActivity.class), REQUEST_SEARCH_HIMNO);
                 } else {
                     Toast.makeText(this, "No Disponible en la version antigua del himnario", Toast.LENGTH_SHORT).show();
                 }
+                return true;
+
+            case R.id.action_contenido:
+                startActivity(new Intent(MainActivity.this, ContenidoActivity.class));
                 return true;
 
             case R.id.action_about:
@@ -431,7 +451,12 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
             numero = data.getExtras().getInt("numero", 0);
             Log.e(TAG, "result ok: " + numero);
             if (numero > 0) {
-
+                if (version2008) {
+                    favoriteButton.setFavorite(((Himno2008) himnos.get(numero - 1)).isFavorito());
+                    musicSize.setText(FileUtils.humanReadableByteCount(((Himno2008) himnos.get(numero - 1)).getFileSize()));
+                } else {
+                    favoriteButton.setFavorite(((Himno1962) himnos.get(numero - 1)).isFavorito());
+                }
                 placeholderHimno.setText("");
                 numString = "" + numero;
                 upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
@@ -439,9 +464,6 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 toolbarTitle.setText(titleShow);
                 numberHimno.setText(titleShow);
                 textHimno.setText(himnos.get(numero - 1).getLetra());
-                if (version2008) {
-                    musicSize.setText(FileUtils.humanReadableByteCount(((Himno2008) himnos.get(numero - 1)).getFileSize()));
-                }
                 setUpPanelControls();
             }
         }
@@ -456,7 +478,6 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
 
     public void numOk(View view) {
         if (numero > 0) {
-            upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
             String titleShow = numString + ". " + himnos.get(numero - 1).getTitulo();
             toolbarTitle.setText(titleShow);
             textHimno.setText(himnos.get(numero - 1).getLetra());
@@ -475,6 +496,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
             } else {
                 favoriteButton.setFavorite(((Himno1962) himnos.get(numero - 1)).isFavorito());
             }
+            upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
             String himnoPath = FileUtils.getDirHimnos(getApplicationContext()).getAbsoluteFile() + "/" + FileUtils.getStringNumber(numero) + ".ogg";
             MediaPlayer mediaPlayer = new MediaPlayer();
             try {
@@ -707,7 +729,6 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         if (adView != null) {
             adView.destroy();
         }
-
         super.onDestroy();
     }
 
@@ -762,15 +783,17 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                     layoutPlay.setVisibility(View.VISIBLE);
                     musicProgress.setProgress(0);
                     musicProcent.setText("");
-                    musicProgress.setVisibility(View.GONE);
                     musicProcent.setVisibility(View.GONE);
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    Log.e(TAG, "onFailure: " + e.getMessage(), e);
+                    if (numero > 0) {
+                        musicSize.setText(FileUtils.humanReadableByteCount(((Himno2008) himnos.get(numero - 1)).getFileSize()));
+                    } else {
+                        musicSize.setText("");
+                    }
                     musicProgress.setProgress(0);
-                    musicSize.setText(FileUtils.humanReadableByteCount(((Himno2008) himnos.get(numero - 1)).getFileSize()));
                 }
             });
         }

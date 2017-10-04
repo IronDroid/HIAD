@@ -21,6 +21,7 @@ public class DBAdapter {
     private static final String TAG = "DBAdapter";
     public static final String DATABASE_TABLE_2008 = "himnario2008";
     public static final String DATABASE_TABLE_1962 = "himnario1962";
+    public static final String DATABASE_TABLE_CATEGORIA = "categorias";
     private final Context context;
     private DatabaseHelper DBHelper;
     private SQLiteDatabase db;
@@ -63,6 +64,28 @@ public class DBAdapter {
         return db.query(tableVersion(version2008), null, null, null, null, null, Himno2008.Columns.favorito + " DESC, "+ DatabaseHelper.Columns.indice.name() + " ASC");
     }
 
+    public Cursor getCategorias() {
+        open();
+        return db.query(DATABASE_TABLE_CATEGORIA, null, null, null, null, null, null, "9");
+    }
+
+    public Cursor getHimnoByCategoria(int cat) {
+        open();
+        return db.query(DATABASE_TABLE_2008, null, "categoria = "+ cat, null, null, null, null, null);
+    }
+
+    public String getCategoria(int cat) {
+        open();
+        Cursor query = db.query(DATABASE_TABLE_CATEGORIA, null, "id = " + cat, null, null, null, null, null);
+        query.moveToFirst();
+        if (query.getCount() == 0){
+            return "";
+        }
+        String titulo = query.getString(1);
+        query.close();
+        return titulo;
+    }
+
     public DBAdapter open() throws SQLException {
         db = DBHelper.getWritableDatabase();
         return this;
@@ -75,4 +98,6 @@ public class DBAdapter {
     public String tableVersion(boolean version2008) {
         return version2008 ? DATABASE_TABLE_2008 : DATABASE_TABLE_1962;
     }
+
+
 }

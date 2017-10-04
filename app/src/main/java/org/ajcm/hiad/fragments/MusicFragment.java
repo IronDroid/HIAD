@@ -1,7 +1,6 @@
 package org.ajcm.hiad.fragments;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -10,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import org.ajcm.hiad.R;
 import org.ajcm.hiad.adapters.MusicViewAdapter;
@@ -55,32 +55,40 @@ public class MusicFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_music, container, false);
-        if (view instanceof RecyclerView) {
-            ArrayList<Himno2008> himnosDescargados = new ArrayList<>();
-            ArrayList<Himno2008> himnosPendientes = new ArrayList<>();
-            DBAdapter dbAdapter = new DBAdapter(getContext());
-            ArrayList<Himno2008> himnos = (ArrayList<Himno2008>) dbAdapter.getAllHimno(true);
-            Log.e(TAG, "onCreateView: " + himnos.size());
-            for (Himno himno : himnos) {
-                String number = FileUtils.getStringNumber(himno.getNumero());
-                File dirHimnos = new File(getContext().getFilesDir().getAbsolutePath() + "/himnos/");
-                dirHimnos.mkdirs();
-                File file = new File(dirHimnos.getAbsolutePath() + "/" + number + ".ogg");
-                if (file.exists()) {
-                    himnosDescargados.add((Himno2008) himno);
-                } else {
-                    himnosPendientes.add((Himno2008) himno);
-                }
+        ArrayList<Himno2008> himnosDescargados = new ArrayList<>();
+        ArrayList<Himno2008> himnosPendientes = new ArrayList<>();
+        DBAdapter dbAdapter = new DBAdapter(getContext());
+        ArrayList<Himno2008> himnos = (ArrayList<Himno2008>) dbAdapter.getAllHimno(true);
+        Log.e(TAG, "onCreateView: " + himnos.size());
+        for (Himno himno : himnos) {
+            String number = FileUtils.getStringNumber(himno.getNumero());
+            File dirHimnos = new File(getContext().getFilesDir().getAbsolutePath() + "/himnos/");
+            dirHimnos.mkdirs();
+            File file = new File(dirHimnos.getAbsolutePath() + "/" + number + ".ogg");
+            if (file.exists()) {
+                himnosDescargados.add((Himno2008) himno);
+            } else {
+                himnosPendientes.add((Himno2008) himno);
             }
-            dbAdapter.close();
-
-            Context context = view.getContext();
-            RecyclerView recyclerView = (RecyclerView) view;
-            recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            MusicViewAdapter recyclerViewAdapter =
-                    new MusicViewAdapter(getActivity(), param, himnosDescargados, himnosPendientes);
-            recyclerView.setAdapter(recyclerViewAdapter);
         }
+        dbAdapter.close();
+
+        TextView textView = (TextView) view.findViewById(R.id.no_download_label);
+
+        Context context = view.getContext();
+        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.music_list);
+        if (himnosDescargados.size() == 0 && param == 0) {
+            recyclerView.setVisibility(View.GONE);
+            textView.setVisibility(View.VISIBLE);
+        }
+        recyclerView.setLayoutManager(new LinearLayoutManager(context));
+        MusicViewAdapter recyclerViewAdapter =
+                new MusicViewAdapter(getActivity(), param, himnosDescargados, himnosPendientes);
+        recyclerView.setAdapter(recyclerViewAdapter);
         return view;
+    }
+
+    public void refreshList(){
+        Log.e(TAG, "refreshList: ");
     }
 }

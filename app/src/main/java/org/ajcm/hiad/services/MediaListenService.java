@@ -25,6 +25,9 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
     private MediaServiceCallbacks callbacks;
     private AudioManager audioManager;
 
+    Handler handler = new Handler();
+    Runnable runnable;
+
     @Override
     public void onCreate() {
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -45,9 +48,6 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
 
         return START_NOT_STICKY;
     }
-
-    Handler handler = new Handler();
-    Runnable runnable;
 
     private void initStream(int numero) {
         String himnoPath = FileUtils.getDirHimnos(getApplicationContext()).getAbsoluteFile() + "/" + FileUtils.getStringNumber(numero) + ".ogg";

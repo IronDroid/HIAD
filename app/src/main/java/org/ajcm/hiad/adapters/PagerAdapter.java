@@ -2,6 +2,7 @@ package org.ajcm.hiad.adapters;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
 import org.ajcm.hiad.fragments.MusicFragment;
@@ -9,7 +10,7 @@ import org.ajcm.hiad.fragments.MusicFragment;
 /**
  * Adaptador del pagerview
  */
-public class PagerAdapter extends FragmentStatePagerAdapter {
+public class PagerAdapter extends FragmentPagerAdapter {
 
     private static final String TAG = "PagerAdapter";
 

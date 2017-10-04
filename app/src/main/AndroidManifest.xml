@@ -31,7 +31,8 @@
             android:name=".services.MediaListenService"
             android:enabled="true" />
 
-        <activity android:name=".activities.WelcomeActivity"></activity>
+        <activity android:name=".activities.WelcomeActivity" />
+        <activity android:name=".activities.ContenidoActivity"></activity>
     </application>
 
 </manifest>

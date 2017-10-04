@@ -1,36 +1,28 @@
 package org.ajcm.hiad.adapters;
 
-import android.content.Context;
-import android.database.Cursor;
-import android.support.annotation.NonNull;
+import android.content.Intent;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.OnProgressListener;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.StreamDownloadTask;
 
 import org.ajcm.hiad.R;
-import org.ajcm.hiad.dataset.DBAdapter;
+import org.ajcm.hiad.activities.MusicActivity;
 import org.ajcm.hiad.models.Himno;
 import org.ajcm.hiad.models.Himno2008;
 import org.ajcm.hiad.utils.FileUtils;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.List;
+
+import static android.app.Activity.RESULT_OK;
 
 /**
  * Created by jhonlimaster on 21-07-16.
@@ -38,15 +30,15 @@ import java.util.List;
 public class MusicViewAdapter extends RecyclerView.Adapter<MusicViewAdapter.ViewHolder> {
 
     private static final String TAG = "MusicViewAdapter";
-    private Context context;
+    private MusicActivity context;
     private int param;
     private ArrayList<Himno2008> himnosDescargados;
     private ArrayList<Himno2008> himnosPendientes;
     private FirebaseStorage storage;
     private ArrayList<Integer> himnosDownloaded;
 
-    public MusicViewAdapter(Context context, int param, ArrayList<Himno2008> himnosDescargados, ArrayList<Himno2008> himnosPendientes) {
-        this.context = context;
+    public MusicViewAdapter(FragmentActivity context, int param, ArrayList<Himno2008> himnosDescargados, ArrayList<Himno2008> himnosPendientes) {
+        this.context = (MusicActivity) context;
         this.param = param;
         this.himnosDescargados = himnosDescargados;
         this.himnosPendientes = himnosPendientes;
@@ -62,18 +54,32 @@ public class MusicViewAdapter extends RecyclerView.Adapter<MusicViewAdapter.View
     }
 
     @Override
-    public void onBindViewHolder(final MusicViewAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(final MusicViewAdapter.ViewHolder holder, final int position) {
         final Himno2008 himno = (param == 0) ? himnosDescargados.get(position) : himnosPendientes.get(position);
         holder.musicNumber.setText(String.valueOf(himno.getNumero()));
         holder.musicTitle.setText(himno.getTitulo());
         holder.musicSize.setText(FileUtils.humanReadableByteCount(himno.getFileSize()));
-        if (himnosDownloaded.contains(himno.getNumero())) {
-            holder.musicSize.setText(FileUtils.humanReadableByteCount(himno.getFileSize()) + " - Descargado");
+        if (param == 0){
+            holder.icAction.setImageResource(R.drawable.ic_delete_black_24dp);
+        } else{
+            holder.icAction.setVisibility(View.GONE);
         }
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                context.setResult(RESULT_OK, new Intent().putExtra("numero", himno.getNumero()));
+                context.finish();
+            }
+        });
+        holder.icAction.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String number = FileUtils.getStringNumber(himno.getNumero());
+                File dirHimnos = new File(context.getFilesDir().getAbsolutePath() + "/himnos/");
+                File file = new File(dirHimnos.getAbsolutePath() + "/" + number + ".ogg");
+                Log.e(TAG, "on Click Delete: " + file.delete());
+                himnosDescargados.remove(position);
+                notifyDataSetChanged();
             }
         });
     }
@@ -90,7 +96,7 @@ public class MusicViewAdapter extends RecyclerView.Adapter<MusicViewAdapter.View
         public TextView musicSize;
         public TextView musicProcent;
         public ProgressBar progressBar;
-        public Himno item;
+        public ImageButton icAction;
 
         public ViewHolder(View view) {
             super(view);
@@ -100,6 +106,7 @@ public class MusicViewAdapter extends RecyclerView.Adapter<MusicViewAdapter.View
             musicSize = (TextView) view.findViewById(R.id.music_size);
             musicProcent = (TextView) view.findViewById(R.id.music_procent);
             progressBar = (ProgressBar) view.findViewById(R.id.music_progress);
+            icAction = (ImageButton) view.findViewById(R.id.ic_action_music);
         }
 
         @Override

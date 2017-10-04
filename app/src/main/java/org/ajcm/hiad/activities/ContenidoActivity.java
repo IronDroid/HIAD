@@ -1,34 +1,30 @@
 package org.ajcm.hiad.activities;
 
-import android.content.Intent;
 import android.os.Build;
-import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
 
 import org.ajcm.hiad.R;
-import org.ajcm.hiad.adapters.MusicViewAdapter;
+import org.ajcm.hiad.adapters.ContenidoPagerAdapter;
 import org.ajcm.hiad.adapters.PagerAdapter;
 import org.ajcm.hiad.fragments.MusicFragment;
 
-public class MusicActivity extends AppCompatActivity {
+public class ContenidoActivity extends AppCompatActivity {
 
-    private static final String TAG = "MusicActivity";
+    private static final String TAG = "ContenidoActivity";
     private ViewPager viewPager;
     private TabLayout tabLayout;
-    private PagerAdapter adapter;
+    private ContenidoPagerAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_music);
+        setContentView(R.layout.activity_contenido);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -43,22 +39,8 @@ public class MusicActivity extends AppCompatActivity {
 
         viewPager = (ViewPager) findViewById(R.id.viewpager);
         tabLayout = (TabLayout) findViewById(R.id.sliding_tabs);
-        adapter = new PagerAdapter(getSupportFragmentManager());
-
-        // TODO: 03-10-17 en esta parte se tiene que hacer el refresh cuando se boora o se descarga un himnos
-        MusicFragment aa = (MusicFragment) adapter.getItem(1);
-        aa.refreshList();
+        adapter = new ContenidoPagerAdapter(getApplicationContext(), getSupportFragmentManager());
         viewPager.setAdapter(adapter);
         tabLayout.setupWithViewPager(viewPager);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                finish();
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 }

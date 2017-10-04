@@ -1,38 +1,5 @@
 <resources>
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-
-        <item name="android:windowNoTitle">true</item>
-        <item name="windowActionBar">false</item>
-    </style>
-
-    <style name="AppThemeToolbar" parent="AppTheme">
-        <item name="android:textColorPrimary">@color/whiteText</item>
-        <item name="android:textColorSecondary">@color/whiteText</item>
-    </style>
-
-    <style name="SplashTheme" parent="Theme.AppCompat.NoActionBar">
-        <item name="android:windowBackground">@drawable/background_splash</item>
-    </style>
-
-    <style name="DialpadKeyButtonStyle">
-        <item name="android:soundEffectsEnabled">false</item>
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">match_parent</item>
-        <item name="android:layout_weight">13</item>
-        <item name="android:textSize">36sp</item>
-        <item name="android:clickable">true</item>
-        <item name="android:minHeight">64dp</item>
-        <item name="android:gravity">center_horizontal|center_vertical</item>
-        <item name="android:background">@drawable/button_correct_shape</item>
-        <item name="android:focusable">true</item>
-    </style>
-
     <style name="ButtonDialPadTheme" parent="Theme.AppCompat.Light">
         <item name="colorControlHighlight">@color/colorAccentPressed</item>
         <item name="colorButtonNormal">@color/colorAccent</item>
@@ -44,7 +11,7 @@
         <item name="android:layout_weight">1</item>
         <item name="android:theme">@style/ButtonDialPadTheme</item>
         <item name="android:gravity">center_horizontal</item>
-        <item name="android:background">@drawable/btn_flat_selector</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
         <item name="android:textColor">@color/btn_flat_selector</item>
         <item name="android:textSize">@dimen/text_size_dialpad</item>
         <item name="android:paddingTop">@dimen/padding_dialpad</item>

@@ -15,4 +15,8 @@
     <string name="about_music">Musicas</string>
     <string name="play_string">Reproducir</string>
     <string name="download_string">Descargar</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="about_contenido">Contenido</string>
 </resources>

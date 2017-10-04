@@ -11,6 +11,10 @@
         android:title="@string/about_music"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_contenido"
+        android:title="@string/about_contenido"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_version_himno"
         android:checkable="true"
         android:title="@string/version_himno"
