@@ -21,6 +21,18 @@
         <item name="android:layout_marginRight">@dimen/btn_flat_min</item>
     </style>
 
+    <style name="Button.Backspace" parent="Widget.AppCompat.ImageButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_gravity">right|bottom</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:contentDescription">@string/app_name</item>
+        <item name="android:paddingRight">@dimen/box_padding</item>
+        <item name="android:layout_marginRight">@dimen/box_padding</item>
+        <item name="android:theme">@style/ButtonDialPadTheme</item>
+        <item name="android:src">@drawable/ic_backspace_black_24dp</item>
+    </style>
+
     <style name="StyledIndicators" parent="@android:style/Theme.Light">
         <item name="vpiCirclePageIndicatorStyle">@style/CustomCirclePageIndicator</item>
     </style>

@@ -48,14 +48,8 @@
 
             <ImageButton
                 android:id="@+id/back_space"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_gravity="right|bottom"
-                android:background="@drawable/btn_flat_selector"
-                android:contentDescription="@string/app_name"
                 android:onClick="inputDelete"
-                android:paddingRight="@dimen/box_padding"
-                android:src="@drawable/ic_backspace_black_24dp" />
+                style="@style/Button.Backspace"/>
         </FrameLayout>
 
         <View

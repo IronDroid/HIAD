@@ -65,7 +65,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="?selectableItemBackground"
-        android:padding="@dimen/activity_vertical_margin_half"
+        android:paddingLeft="@dimen/activity_vertical_margin_half"
+        android:paddingRight="@dimen/activity_vertical_margin_half"
         android:src="@drawable/ic_cancel_black_24dp"
         android:tint="@color/colorAccent"
         android:visibility="gone" />

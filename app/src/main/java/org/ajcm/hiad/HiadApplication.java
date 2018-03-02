@@ -1,8 +1,15 @@
 package org.ajcm.hiad;
 
+import android.app.AlarmManager;
 import android.app.Application;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -12,6 +19,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
+import org.ajcm.hiad.activities.MainActivity;
 import org.ajcm.hiad.dataset.DatabaseHelper;
 
 import java.util.concurrent.TimeUnit;
@@ -49,5 +57,16 @@ public class HiadApplication extends Application {
             }
         }).run();
 
+        fridayNotification();
+    }
+
+    public final static int ID_NOTIFICATION = 77;
+
+    public void fridayNotification() {
+        Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
+        PendingIntent test = PendingIntent.getActivity(getApplicationContext(), ID_NOTIFICATION, notificationIntent, PendingIntent.FLAG_NO_CREATE);
+        if (test != null) {
+            Log.e(TAG, "fridayNotification: notificacion activa");
+        }
     }
 }

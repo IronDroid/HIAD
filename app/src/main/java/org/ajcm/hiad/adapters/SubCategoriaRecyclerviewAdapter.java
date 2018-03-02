@@ -1,9 +1,10 @@
 package org.ajcm.hiad.adapters;
 
 import android.content.Context;
+import android.content.Intent;
+import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
 import android.util.Log;
-import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,8 @@ import org.zakariya.stickyheaders.SectioningAdapter;
 
 import java.util.ArrayList;
 
+import static android.app.Activity.RESULT_OK;
+
 /**
  * Created by jhonlimaster on 03-10-17.
  */
@@ -24,9 +27,11 @@ public class SubCategoriaRecyclerviewAdapter extends SectioningAdapter {
 
     private static final String TAG = "SubCategoriaRecyclervie";
     private ArrayList<ContenidoFragment.Section> sections;
+    private FragmentActivity fragmentActivity;
 
-    public SubCategoriaRecyclerviewAdapter(Context context, ArrayList<ContenidoFragment.Section> sections) {
+    public SubCategoriaRecyclerviewAdapter(FragmentActivity context, ArrayList<ContenidoFragment.Section> sections) {
         this.sections = sections;
+        this.fragmentActivity = context;
     }
 
     @Override
@@ -46,15 +51,21 @@ public class SubCategoriaRecyclerviewAdapter extends SectioningAdapter {
     @Override
     public void onBindItemViewHolder(SectioningAdapter.ItemViewHolder viewHolder, int sectionIndex, int itemIndex, int itemType) {
         ItemViewHolder ivh = (ItemViewHolder) viewHolder;
-        Himno2008 himno2008 = sections.get(sectionIndex).getHimno2008s().get(itemIndex);
+        final Himno2008 himno2008 = sections.get(sectionIndex).getHimno2008s().get(itemIndex);
+        ivh.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                fragmentActivity.setResult(RESULT_OK, new Intent().putExtra("numero", himno2008.getNumero()));
+                fragmentActivity.finish();
+            }
+        });
         ivh.textView.setText(himno2008.getNumero() + " " + himno2008.getTitulo());
     }
 
     @Override
     public void onBindHeaderViewHolder(SectioningAdapter.HeaderViewHolder viewHolder, int sectionIndex, int headerType) {
         HeaderViewHolder hvh = (HeaderViewHolder) viewHolder;
-//        viewHolder.itemView.setBackgroundColor(0x55FF9999);
-        hvh.textView.setText("section: " + sections.get(sectionIndex).getHeaders());
+        hvh.textView.setText(sections.get(sectionIndex).getHeaders().toUpperCase());
     }
 
     @Override

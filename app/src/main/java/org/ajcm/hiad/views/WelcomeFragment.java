@@ -44,7 +44,7 @@ public class WelcomeFragment extends Fragment {
         TextView description = (TextView) view.findViewById(R.id.description);
         switch (page){
             case 0:
-                title.setText("Tu Himnario Adventista");
+                title.setText(R.string.app_name);
                 description.setText("Facil e intuitivo");
                 mainImage.setImageResource(R.drawable.inicio);
                 break;

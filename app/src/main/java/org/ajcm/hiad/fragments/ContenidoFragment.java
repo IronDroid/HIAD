@@ -117,7 +117,7 @@ public class ContenidoFragment extends Fragment {
 
             himnoByCategoria.close();
             dbAdapter.close();
-            recyclerView.setAdapter(new SubCategoriaRecyclerviewAdapter(getContext(), sections));
+            recyclerView.setAdapter(new SubCategoriaRecyclerviewAdapter(getActivity(), sections));
         }
 
         return view;

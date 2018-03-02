@@ -1,12 +1,17 @@
 package org.ajcm.hiad.activities;
 
 import android.app.ActivityManager;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -14,6 +19,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -40,6 +47,7 @@ import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import org.ajcm.hiad.AlarmReceiver;
 import org.ajcm.hiad.R;
 import org.ajcm.hiad.dataset.DBAdapter;
 import org.ajcm.hiad.models.Himno;
@@ -48,6 +56,7 @@ import org.ajcm.hiad.models.Himno2008;
 import org.ajcm.hiad.services.MediaListenService;
 import org.ajcm.hiad.utils.ConnectionUtils;
 import org.ajcm.hiad.utils.FileUtils;
+import org.ajcm.hiad.utils.UserPreferences;
 import org.ajcm.hiad.views.ZoomTextView;
 
 import java.io.File;
@@ -56,6 +65,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Random;
+
+import static org.ajcm.hiad.HiadApplication.ID_NOTIFICATION;
 
 public class MainActivity extends AppCompatActivity implements MediaListenService.MediaServiceCallbacks {
 
@@ -119,7 +130,8 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
             setSupportActionBar(toolbar);
         }
 
-        adsMethod();
+        notAdsInSaturday();
+        setNotification();
         analitycsMethod();
 
         limit = NEW_LIMIT;
@@ -398,7 +410,11 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 return true;
 
             case R.id.action_contenido:
-                startActivity(new Intent(MainActivity.this, ContenidoActivity.class));
+                if (this.version2008) {
+                    startActivityForResult(new Intent(MainActivity.this, ContenidoActivity.class), REQUEST_SEARCH_HIMNO);
+                } else {
+                    Toast.makeText(this, "No Disponible en la version antigua del himnario", Toast.LENGTH_SHORT).show();
+                }
                 return true;
 
             case R.id.action_about:
@@ -797,5 +813,102 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 }
             });
         }
+    }
+
+    public static void showNotification(Context context) {
+        Intent intent = new Intent(context, MainActivity.class);
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+        stackBuilder.addParentStack(MainActivity.class);
+        stackBuilder.addNextIntent(intent);
+
+        PendingIntent pendingIntent = stackBuilder.getPendingIntent(
+                ID_NOTIFICATION, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
+                .setContentTitle(context.getResources().getString(R.string.app_name))
+                .setSmallIcon(R.drawable.ic_music_note_black_36dp)
+                .setContentText(context.getResources().getString(R.string.feliz_sabado));
+        mBuilder.setContentIntent(pendingIntent);
+        mBuilder.setDefaults(Notification.DEFAULT_SOUND);
+        mBuilder.setAutoCancel(true);
+        NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.notify(ID_NOTIFICATION, mBuilder.build());
+    }
+
+    public void notAdsInSaturday() {
+        Calendar currentDate = Calendar.getInstance();
+        Calendar calendar1 = Calendar.getInstance();
+        calendar1.set(Calendar.DAY_OF_WEEK, Calendar.FRIDAY);
+        calendar1.set(Calendar.HOUR_OF_DAY, 18);
+        calendar1.set(Calendar.MINUTE, 0);
+        calendar1.set(Calendar.SECOND, 0);
+        Calendar calendar2 = Calendar.getInstance();
+        calendar2.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
+        calendar2.set(Calendar.HOUR_OF_DAY, 18);
+        calendar2.set(Calendar.MINUTE, 0);
+        calendar2.set(Calendar.SECOND, 0);
+
+        if (!currentDate.before(calendar2) || !calendar1.before(currentDate)) {
+            adsMethod();
+        }
+    }
+
+    public void setNotification() {
+        UserPreferences userPreferences = new UserPreferences(getApplicationContext());
+        Calendar currentDate = Calendar.getInstance();
+        Calendar calendarFriday = Calendar.getInstance();
+        calendarFriday.set(Calendar.DAY_OF_WEEK, Calendar.FRIDAY);
+        calendarFriday.set(Calendar.HOUR_OF_DAY, 18);
+        calendarFriday.set(Calendar.MINUTE, 0);
+        calendarFriday.set(Calendar.SECOND, 0);
+        Calendar calendarSaturday = Calendar.getInstance();
+        calendarSaturday.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
+        calendarSaturday.set(Calendar.HOUR_OF_DAY, 18);
+        calendarSaturday.set(Calendar.MINUTE, 0);
+        calendarSaturday.set(Calendar.SECOND, 0);
+
+//        if (currentDate.before(calendarSaturday) && calendarFriday.before(currentDate)) {
+        if (!userPreferences.getBoolean("alarm")) {
+            cancelReminder();
+            ComponentName receiver = new ComponentName(getApplicationContext(), AlarmReceiver.class);
+            PackageManager pm = getPackageManager();
+            pm.setComponentEnabledSetting(receiver,
+                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                    PackageManager.DONT_KILL_APP);
+
+            Intent intent = new Intent(getApplicationContext(), AlarmReceiver.class);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(),
+                    ID_NOTIFICATION, intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT);
+            AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
+            am.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendarFriday.getTimeInMillis(),
+                    AlarmManager.INTERVAL_DAY * 7, pendingIntent);
+
+            userPreferences.putBoolean("alarm", true);
+
+            Intent intent2 = new Intent(getApplicationContext(), AlarmReceiver.class);
+            intent2.putExtra("end_alarm",true);
+            PendingIntent pendingIntent2 = PendingIntent.getBroadcast(getApplicationContext(),
+                    ID_NOTIFICATION + 11, intent2,
+                    PendingIntent.FLAG_UPDATE_CURRENT);
+            AlarmManager am2 = (AlarmManager) getSystemService(ALARM_SERVICE);
+            am2.set(AlarmManager.RTC_WAKEUP, calendarSaturday.getTimeInMillis(), pendingIntent2);
+        }
+    }
+
+    public void cancelReminder() {
+        // Disable a receiver
+        ComponentName receiver = new ComponentName(getApplicationContext(), AlarmReceiver.class);
+        PackageManager pm = getPackageManager();
+        pm.setComponentEnabledSetting(receiver,
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP);
+
+        Intent intent1 = new Intent(getApplicationContext(), AlarmReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(),
+                ID_NOTIFICATION, intent1, PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
+        am.cancel(pendingIntent);
+        pendingIntent.cancel();
     }
 }
