@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_main"
+            android:checked="true"
+            android:title="Inicio" />
+        <item
+            android:id="@+id/nav_music"
+            android:title="Musicas" />
+        <item
+            android:id="@+id/nav_contenido"
+            android:title="Contenido" />
+
+    </group>
+    <item android:title="Sé social">
+        <menu>
+            <item
+                android:id="@+id/nav_version"
+                android:title="@string/version_himno"
+                app:actionLayout="@layout/action_view_switch" />
+            <!--<item-->
+                <!--android:id="@+id/nav_mode"-->
+                <!--android:title="Modo nocturno"-->
+                <!--app:actionLayout="@layout/action_view_switch" />-->
+            <item
+                android:id="@+id/nav_share"
+                android:title="Compartir" />
+            <item
+
+                android:id="@+id/nav_rate"
+                android:title="Calificar" />
+            <item
+                android:id="@+id/nav_about"
+                android:title="Acerca de..." />
+        </menu>
+    </item>
+</menu>

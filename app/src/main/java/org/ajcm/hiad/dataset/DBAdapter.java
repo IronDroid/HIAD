@@ -48,6 +48,23 @@ public class DBAdapter {
         return himnos;
     }
 
+    public ArrayList<? extends Himno> getAllHimnoFav(boolean version2008) {
+        open();
+        ArrayList<Himno> himnos = new ArrayList<>();
+        Cursor query = db.query(tableVersion(version2008), null, Himno2008.Columns.favorito + " = 1", null, null, null, null);
+        Log.e(TAG, "getAllHimno: " + query.getCount());
+        while (query.moveToNext()) {
+            if (version2008) {
+                himnos.add(Himno2008.fromCursor(query));
+            } else {
+                himnos.add(Himno1962.fromCursor(query));
+            }
+        }
+
+        query.close();
+        return himnos;
+    }
+
     public void setFav(int numero, boolean fav, boolean version2008) {
         open();
         ContentValues values = new ContentValues();
@@ -57,11 +74,11 @@ public class DBAdapter {
     }
 
     public Cursor getHimnoForTitle(String filter, boolean version2008) {
-        return db.query(tableVersion(version2008), null, DatabaseHelper.Columns.indice.name() + " LIKE '%" + filter + "%'", null, null, null,Himno2008.Columns.favorito + " DESC, "+ DatabaseHelper.Columns.indice.name() + " ASC");
+        return db.query(tableVersion(version2008), null, DatabaseHelper.Columns.indice.name() + " LIKE '%" + filter + "%'", null, null, null, Himno2008.Columns.favorito + " DESC, " + DatabaseHelper.Columns.indice.name() + " ASC");
     }
 
     public Cursor getAllHimnoASC(boolean version2008) {
-        return db.query(tableVersion(version2008), null, null, null, null, null, Himno2008.Columns.favorito + " DESC, "+ DatabaseHelper.Columns.indice.name() + " ASC");
+        return db.query(tableVersion(version2008), null, null, null, null, null, Himno2008.Columns.favorito + " DESC, " + DatabaseHelper.Columns.indice.name() + " ASC");
     }
 
     public Cursor getCategorias() {
@@ -71,14 +88,14 @@ public class DBAdapter {
 
     public Cursor getHimnoByCategoria(int cat) {
         open();
-        return db.query(DATABASE_TABLE_2008, null, "categoria = "+ cat, null, null, null, null, null);
+        return db.query(DATABASE_TABLE_2008, null, "categoria = " + cat, null, null, null, null, null);
     }
 
     public String getCategoria(int cat) {
         open();
         Cursor query = db.query(DATABASE_TABLE_CATEGORIA, null, "id = " + cat, null, null, null, null, null);
         query.moveToFirst();
-        if (query.getCount() == 0){
+        if (query.getCount() == 0) {
             return "";
         }
         String titulo = query.getString(1);

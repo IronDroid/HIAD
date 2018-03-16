@@ -1,17 +1,12 @@
 package org.ajcm.hiad.activities;
 
 import android.app.ActivityManager;
-import android.app.AlarmManager;
 import android.app.AlertDialog;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -19,14 +14,21 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
+import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -47,16 +49,16 @@ import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
-import org.ajcm.hiad.AlarmReceiver;
+import org.ajcm.hiad.MyFirebaseMessagingService;
 import org.ajcm.hiad.R;
 import org.ajcm.hiad.dataset.DBAdapter;
+import org.ajcm.hiad.fragments.MainFragment;
 import org.ajcm.hiad.models.Himno;
 import org.ajcm.hiad.models.Himno1962;
 import org.ajcm.hiad.models.Himno2008;
 import org.ajcm.hiad.services.MediaListenService;
 import org.ajcm.hiad.utils.ConnectionUtils;
 import org.ajcm.hiad.utils.FileUtils;
-import org.ajcm.hiad.utils.UserPreferences;
 import org.ajcm.hiad.views.ZoomTextView;
 
 import java.io.File;
@@ -66,9 +68,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Random;
 
-import static org.ajcm.hiad.HiadApplication.ID_NOTIFICATION;
-
-public class MainActivity extends AppCompatActivity implements MediaListenService.MediaServiceCallbacks {
+public class MainActivity extends AppCompatActivity implements MediaListenService.MediaServiceCallbacks, NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = "MainActivity";
     private static final String CURRENT_TEXT_NUMBER = "current_text_number";
@@ -124,15 +124,27 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // TODO: 16-03-18 set layout drawer_layout
+//        setContentView(R.layout.drawer_layout);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        if (toolbar != null) {
-            setSupportActionBar(toolbar);
+        setSupportActionBar(toolbar);
+        // TODO: 16-03-18 Navigation drawer
+//        final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+//        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+//                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+//        drawer.addDrawerListener(toggle);
+//        toggle.syncState();
+//        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+//        navigationView.setNavigationItemSelectedListener(this);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimary));
         }
 
         notAdsInSaturday();
-        setNotification();
         analitycsMethod();
+
 
         limit = NEW_LIMIT;
         numString = "";
@@ -174,7 +186,6 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 }
             }
         });
-
         ImageView backSpaceButton = (ImageView) findViewById(R.id.back_space);
         backSpaceButton.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -183,14 +194,9 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 return true;
             }
         });
-
         String[] textos = getResources().getStringArray(R.array.textos_alabanza);
         int random = new Random().nextInt(textos.length);
         ((TextView) findViewById(R.id.texto_alabanza)).setText(textos[random]);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimary));
-        }
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -271,6 +277,45 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         String urlFirebase = "gs://tu-himnario-adventista.appspot.com";
         FirebaseStorage storage = FirebaseStorage.getInstance();
         reference = storage.getReferenceFromUrl(urlFirebase);
+
+        actionNotification();
+
+        // TODO: 16-03-18 navigation version
+//        Menu menu = navigationView.getMenu();
+//        MenuItem menuItem = menu.findItem(R.id.nav_version);
+//        View actionView = MenuItemCompat.getActionView(menuItem);
+//        SwitchCompat switcher = (SwitchCompat) actionView.findViewById(R.id.switcher);
+//        switcher.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Toast.makeText(MainActivity.this, "version click " + ((SwitchCompat) view).isChecked(), Toast.LENGTH_SHORT).show();
+//            }
+//        });
+        // TODO: 16-03-18 modo nocturno
+//        menuItem = menu.findItem(R.id.nav_mode);
+//        actionView = MenuItemCompat.getActionView(menuItem);
+//        switcher = (SwitchCompat) actionView.findViewById(R.id.switcher);
+//        switcher.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Toast.makeText(MainActivity.this, "mode click " + ((SwitchCompat) view).isChecked(), Toast.LENGTH_SHORT).show();
+//            }
+//        });
+    }
+
+    public void actionNotification() {
+        Random random = new Random();
+        if (getIntent().getAction() != null && getIntent().getAction().equalsIgnoreCase(MyFirebaseMessagingService.OPEN_HIMNO)) {
+            dbAdapter.open();
+            ArrayList<Himno2008> allHimno = (ArrayList<Himno2008>) dbAdapter.getAllHimnoFav(version2008);
+            if (allHimno.size() > 0) {
+                Himno2008 himno2008 = allHimno.get(random.nextInt(allHimno.size()));
+                numero = himno2008.getNumero();
+                numString = himno2008.getNumero() + "";
+                numOk(null);
+            }
+            dbAdapter.close();
+        }
     }
 
     private void getData() {
@@ -351,7 +396,6 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         }
         return super.onCreateOptionsMenu(menu);
     }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -437,6 +481,10 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
 
     @Override
     public void onBackPressed() {
+//        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+//        if (drawer.isDrawerOpen(GravityCompat.START)) {
+//            drawer.closeDrawer(GravityCompat.START);
+//        } else if (upPanelLayout != null &&
         if (upPanelLayout != null &&
                 (upPanelLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED ||
                         upPanelLayout.getPanelState() == SlidingUpPanelLayout.PanelState.ANCHORED)) {
@@ -815,26 +863,6 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         }
     }
 
-    public static void showNotification(Context context) {
-        Intent intent = new Intent(context, MainActivity.class);
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-        stackBuilder.addParentStack(MainActivity.class);
-        stackBuilder.addNextIntent(intent);
-
-        PendingIntent pendingIntent = stackBuilder.getPendingIntent(
-                ID_NOTIFICATION, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
-                .setContentTitle(context.getResources().getString(R.string.app_name))
-                .setSmallIcon(R.drawable.ic_music_note_black_36dp)
-                .setContentText(context.getResources().getString(R.string.feliz_sabado));
-        mBuilder.setContentIntent(pendingIntent);
-        mBuilder.setDefaults(Notification.DEFAULT_SOUND);
-        mBuilder.setAutoCancel(true);
-        NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(ID_NOTIFICATION, mBuilder.build());
-    }
-
     public void notAdsInSaturday() {
         Calendar currentDate = Calendar.getInstance();
         Calendar calendar1 = Calendar.getInstance();
@@ -853,62 +881,100 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         }
     }
 
-    public void setNotification() {
-        UserPreferences userPreferences = new UserPreferences(getApplicationContext());
-        Calendar currentDate = Calendar.getInstance();
-        Calendar calendarFriday = Calendar.getInstance();
-        calendarFriday.set(Calendar.DAY_OF_WEEK, Calendar.FRIDAY);
-        calendarFriday.set(Calendar.HOUR_OF_DAY, 18);
-        calendarFriday.set(Calendar.MINUTE, 0);
-        calendarFriday.set(Calendar.SECOND, 0);
-        Calendar calendarSaturday = Calendar.getInstance();
-        calendarSaturday.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
-        calendarSaturday.set(Calendar.HOUR_OF_DAY, 18);
-        calendarSaturday.set(Calendar.MINUTE, 0);
-        calendarSaturday.set(Calendar.SECOND, 0);
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+//        Class fragmentClass = null;
 
-//        if (currentDate.before(calendarSaturday) && calendarFriday.before(currentDate)) {
-        if (!userPreferences.getBoolean("alarm")) {
-            cancelReminder();
-            ComponentName receiver = new ComponentName(getApplicationContext(), AlarmReceiver.class);
-            PackageManager pm = getPackageManager();
-            pm.setComponentEnabledSetting(receiver,
-                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                    PackageManager.DONT_KILL_APP);
+        View actionView = MenuItemCompat.getActionView(item);
+        switch (item.getItemId()) {
+//            case R.id.nav_main:
+//                fragmentClass = MainFragment.class;
+//                getSupportActionBar().setTitle(R.string.app_name);
+//                break;
+            case R.id.nav_version:
+                SwitchCompat switcher = (SwitchCompat) actionView.findViewById(R.id.switcher);
+                switcher.performClick();
+                if (switcher.isChecked()) {
+//                    switcher.setChecked(false);
+                    version2008 = true;
+                    limit = NEW_LIMIT;
+                } else {
+//                    switcher.setChecked(true);
+                    version2008 = false;
+                    limit = OLD_LIMIT;
+                    Bundle params = new Bundle();
+                    params.putString("Category", "Action");
+                    params.putString("Action", "Version_Antiguo");
+                    analytics.logEvent("Change_version", params);
+                }
+                getData();
 
-            Intent intent = new Intent(getApplicationContext(), AlarmReceiver.class);
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(),
-                    ID_NOTIFICATION, intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT);
-            AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
-            am.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendarFriday.getTimeInMillis(),
-                    AlarmManager.INTERVAL_DAY * 7, pendingIntent);
+                // TODO: 14-07-17 agrupar estas funciones
+                numberHimno.setText("");
+                numString = "";
+                numero = 0;
+                setPlaceholderHimno();
+                break;
 
-            userPreferences.putBoolean("alarm", true);
+//            case R.id.nav_mode:
+//                switcher.performClick();
+//                break;
 
-            Intent intent2 = new Intent(getApplicationContext(), AlarmReceiver.class);
-            intent2.putExtra("end_alarm",true);
-            PendingIntent pendingIntent2 = PendingIntent.getBroadcast(getApplicationContext(),
-                    ID_NOTIFICATION + 11, intent2,
-                    PendingIntent.FLAG_UPDATE_CURRENT);
-            AlarmManager am2 = (AlarmManager) getSystemService(ALARM_SERVICE);
-            am2.set(AlarmManager.RTC_WAKEUP, calendarSaturday.getTimeInMillis(), pendingIntent2);
+            case R.id.nav_rate:
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + APP_PNAME)));
+                break;
+
+            case R.id.nav_share:
+                Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+                sharingIntent.setType("text/plain");
+                sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Tu Himnario Adventista");
+
+                sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, "https://play.google.com/store/apps/details?id=" + APP_PNAME);
+                startActivity(Intent.createChooser(sharingIntent, "Compartir via..."));
+                break;
+
+            case R.id.nav_music:
+                if (this.version2008) {
+                    startActivityForResult(new Intent(MainActivity.this, MusicActivity.class), REQUEST_SEARCH_HIMNO);
+                } else {
+                    Toast.makeText(this, "No Disponible en la version antigua del himnario", Toast.LENGTH_SHORT).show();
+                }
+                break;
+
+            case R.id.nav_contenido:
+                if (this.version2008) {
+                    startActivityForResult(new Intent(MainActivity.this, ContenidoActivity.class), REQUEST_SEARCH_HIMNO);
+                } else {
+                    Toast.makeText(this, "No Disponible en la version antigua del himnario", Toast.LENGTH_SHORT).show();
+                }
+                break;
+
+            case R.id.nav_about:
+                new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.app_name))
+                        .setMessage("Desarrollado por:" +
+                                "\nAlex Jhonny Cruz Mamani" +
+                                "\nDesarrollador Android Entusiasta" +
+                                "\nEmail: jhonlimaster@gmail.com" +
+                                "\nTwitter: @jhonlimaster")
+                        .setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.dismiss();
+                            }
+                        }).show();
+                break;
         }
-    }
+//
+//        try {
+//            Fragment fragment = (Fragment) fragmentClass.newInstance();
+//            FragmentManager fragmentManager = getSupportFragmentManager();
+//            fragmentManager.beginTransaction().replace(R.id.content, fragment).commit();
+//        } catch (Exception e) {
+//            Log.e(TAG, "onNavigationItemSelected: " + e.getMessage(), e);
+//        }
 
-    public void cancelReminder() {
-        // Disable a receiver
-        ComponentName receiver = new ComponentName(getApplicationContext(), AlarmReceiver.class);
-        PackageManager pm = getPackageManager();
-        pm.setComponentEnabledSetting(receiver,
-                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                PackageManager.DONT_KILL_APP);
-
-        Intent intent1 = new Intent(getApplicationContext(), AlarmReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(),
-                ID_NOTIFICATION, intent1, PendingIntent.FLAG_UPDATE_CURRENT);
-        AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
-        am.cancel(pendingIntent);
-        pendingIntent.cancel();
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
     }
 }

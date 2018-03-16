@@ -6,8 +6,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
@@ -17,8 +15,6 @@ import com.google.firebase.messaging.RemoteMessage;
 
 import org.ajcm.hiad.activities.MainActivity;
 
-import static org.ajcm.hiad.HiadApplication.ID_NOTIFICATION;
-
 
 /**
  * Created by jhonlimaster on 08-02-18.
@@ -26,6 +22,8 @@ import static org.ajcm.hiad.HiadApplication.ID_NOTIFICATION;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
     private static final String TAG = "MyFirebaseMessagingServ";
+    public static final String OPEN_HIMNO = "opem_himno";
+    public static final int ID_NOTIFICATION = 77;
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
@@ -41,6 +39,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private void sendNotification(String messageBody) {
         Intent intent = new Intent(this, MainActivity.class);
+        intent.setAction(OPEN_HIMNO);
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addParentStack(MainActivity.class);
         stackBuilder.addNextIntent(intent);

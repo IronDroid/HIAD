@@ -39,7 +39,7 @@ public class HiadApplication extends Application {
             public void run() {
                 DatabaseHelper databaseHelper = new DatabaseHelper(getApplicationContext());
                 databaseHelper.checkUpdate();
-                MobileAds.initialize(getApplicationContext(), "ca-app-pub-5411285117883478~9340686141");
+                MobileAds.initialize(getApplicationContext(), getString(R.string.ads_id));
                 FirebaseAuth auth = FirebaseAuth.getInstance();
                 auth.signInAnonymously().addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                     @Override
@@ -56,17 +56,5 @@ public class HiadApplication extends Application {
                 });
             }
         }).run();
-
-        fridayNotification();
-    }
-
-    public final static int ID_NOTIFICATION = 77;
-
-    public void fridayNotification() {
-        Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
-        PendingIntent test = PendingIntent.getActivity(getApplicationContext(), ID_NOTIFICATION, notificationIntent, PendingIntent.FLAG_NO_CREATE);
-        if (test != null) {
-            Log.e(TAG, "fridayNotification: notificacion activa");
-        }
     }
 }

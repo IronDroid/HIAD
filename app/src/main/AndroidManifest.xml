@@ -33,7 +33,8 @@
 
         <activity android:name=".activities.WelcomeActivity" />
         <activity android:name=".activities.ContenidoActivity"></activity>
-        <receiver android:name=".AlarmReceiver"/>
+
+
         <service
             android:name=".MyFirebaseMessagingService">
             <intent-filter>
