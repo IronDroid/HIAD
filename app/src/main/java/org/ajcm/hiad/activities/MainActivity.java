@@ -15,12 +15,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
@@ -28,7 +25,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -43,16 +39,15 @@ import com.google.android.gms.ads.AdView;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
-import org.ajcm.hiad.MyFirebaseMessagingService;
 import org.ajcm.hiad.R;
 import org.ajcm.hiad.dataset.DBAdapter;
-import org.ajcm.hiad.fragments.MainFragment;
 import org.ajcm.hiad.models.Himno;
 import org.ajcm.hiad.models.Himno1962;
 import org.ajcm.hiad.models.Himno2008;
@@ -68,6 +63,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Random;
 
+import static org.ajcm.hiad.MyFirebaseMessagingService.OPEN_HIMNO;
+
 public class MainActivity extends AppCompatActivity implements MediaListenService.MediaServiceCallbacks, NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = "MainActivity";
@@ -82,10 +79,12 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
     private static final int OLD_LIMIT = 527;
     private static final int NEW_LIMIT = 613;
 
-    private ZoomTextView textHimno;
     private TextView numberHimno;
-    private TextView toolbarTitle;
     private TextView placeholderHimno;
+    private AdView adView;
+
+    private ZoomTextView textHimno;
+    private TextView toolbarTitle;
     private SlidingUpPanelLayout upPanelLayout;
     private DBAdapter dbAdapter;
     private ArrayList<? extends Himno> himnos;
@@ -94,12 +93,12 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
     private String numString;
     private int numero;
     private int limit;
+
     private boolean firstPlay;
 
     private boolean toastClose;
     private Toast toast;
 
-    private AdView adView;
     private FirebaseAnalytics analytics;
 
     private Intent intentService;
@@ -115,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
     private TextView musicTime;
     private TextView musicDuration;
     private TextView musicProcent;
+    private TextView titleDownload;
     private ProgressBar musicProgress;
     private MaterialFavoriteButton favoriteButton;
 
@@ -128,7 +128,9 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
 //        setContentView(R.layout.drawer_layout);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        if (toolbar != null) {
+            setSupportActionBar(toolbar);
+        }
         // TODO: 16-03-18 Navigation drawer
 //        final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 //        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -138,6 +140,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
 //        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
 //        navigationView.setNavigationItemSelectedListener(this);
 
+        // color del statusbar
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimary));
         }
@@ -163,6 +166,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         musicTime = (TextView) findViewById(R.id.music_time);
         musicDuration = (TextView) findViewById(R.id.music_duration);
         musicProcent = (TextView) findViewById(R.id.music_procent);
+        titleDownload = (TextView) findViewById(R.id.title_download);
         musicProgress = (ProgressBar) findViewById(R.id.music_progress);
 
         setupUpPanel();
@@ -226,6 +230,8 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
             public void onClick(View view) {
                 if (ConnectionUtils.hasInternet(getApplicationContext())) {
                     musicProcent.setVisibility(View.VISIBLE);
+                    titleDownload.setVisibility(View.GONE);
+                    musicProcent.setVisibility(View.VISIBLE);
                     buttonCancel.setVisibility(View.VISIBLE);
                     buttonDonwload.setVisibility(View.GONE);
                     donwloadMusic(numero);
@@ -238,9 +244,11 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
             @Override
             public void onClick(View view) {
                 musicProcent.setVisibility(View.GONE);
+                titleDownload.setVisibility(View.VISIBLE);
                 buttonCancel.setVisibility(View.GONE);
                 buttonDonwload.setVisibility(View.VISIBLE);
                 musicProgress.setIndeterminate(false);
+                musicProgress.setVisibility(View.GONE);
                 fileDownloadTask.cancel();
 
                 String number = FileUtils.getStringNumber(numero);
@@ -280,6 +288,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
 
         actionNotification();
 
+        Log.e(TAG, "onCreate: " + FirebaseInstanceId.getInstance().getToken());
         // TODO: 16-03-18 navigation version
 //        Menu menu = navigationView.getMenu();
 //        MenuItem menuItem = menu.findItem(R.id.nav_version);
@@ -303,10 +312,10 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
 //        });
     }
 
+    // esto se activa cuando se abre la notificacion push en primer plano
     public void actionNotification() {
         Random random = new Random();
-        if (getIntent().getAction() != null && getIntent().getAction().equalsIgnoreCase(MyFirebaseMessagingService.OPEN_HIMNO)) {
-            dbAdapter.open();
+        if (getIntent().getAction() != null && getIntent().getAction().equalsIgnoreCase(OPEN_HIMNO)) {
             ArrayList<Himno2008> allHimno = (ArrayList<Himno2008>) dbAdapter.getAllHimnoFav(version2008);
             if (allHimno.size() > 0) {
                 Himno2008 himno2008 = allHimno.get(random.nextInt(allHimno.size()));
@@ -318,8 +327,8 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         }
     }
 
+    // obtiene todos los himnos
     private void getData() {
-        dbAdapter.open();
         himnos = dbAdapter.getAllHimno(version2008);
         dbAdapter.close();
         if (numero > 0) {
@@ -332,19 +341,24 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         }
         if (numero > 0 && version2008) {
             musicSize.setText(FileUtils.humanReadableByteCount(((Himno2008) himnos.get(numero - 1)).getFileSize()));
+            String titleShow = numString + ". " + himnos.get(numero - 1).getTitulo();
+            titleDownload.setText(titleShow);
         }
     }
 
+    // crea el banner de publicidad
     private void adsMethod() {
         adView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
         adView.loadAd(adRequest);
     }
 
+    // inicializa analitics
     private void analitycsMethod() {
         analytics = FirebaseAnalytics.getInstance(this);
     }
 
+    // recupera los datos guardados en onSaveInstanceState()
     private void restoreDataSaved(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             numberHimno.setText(savedInstanceState.getString(CURRENT_TEXT_NUMBER));
@@ -526,6 +540,8 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                 upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
                 String titleShow = numString + ". " + himnos.get(numero - 1).getTitulo();
                 toolbarTitle.setText(titleShow);
+                titleDownload.setText(titleShow);
+                titleDownload.setText(titleShow);
                 numberHimno.setText(titleShow);
                 textHimno.setText(himnos.get(numero - 1).getLetra());
                 setUpPanelControls();
@@ -540,10 +556,12 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         numString = "";
     }
 
+    // boton OK
     public void numOk(View view) {
         if (numero > 0) {
             String titleShow = numString + ". " + himnos.get(numero - 1).getTitulo();
             toolbarTitle.setText(titleShow);
+            titleDownload.setText(titleShow);
             textHimno.setText(himnos.get(numero - 1).getLetra());
 
             numberHimno.setText("");
@@ -552,6 +570,8 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
             seekBar.setProgress(0);
             musicTime.setText(getDate(0));
             musicProgress.setIndeterminate(false);
+            musicProgress.setVisibility(View.GONE);
+            titleDownload.setVisibility(View.VISIBLE);
             buttonDonwload.setVisibility(View.VISIBLE);
             buttonCancel.setVisibility(View.GONE);
             if (version2008) {
@@ -572,6 +592,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         }
     }
 
+    // se aumenta un digito al numero
     public void masUno(int num) {
         placeholderHimno.setText("");
 
@@ -593,6 +614,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         }
     }
 
+    // se quita un digito al numero
     public void menosUno() {
         if (numString.length() <= 1) {
             numString = "";
@@ -612,6 +634,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         }
     }
 
+    // configuracion inicial del panelUp
     private void setupUpPanel() {
         toolbarTitle = (TextView) findViewById(R.id.toolbar_title);
         upPanelLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
@@ -644,6 +667,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         });
     }
 
+    // placeholder del textview antes de digitar un numero
     private void setPlaceholderHimno() {
         if (version2008) {
             placeholderHimno.setText(R.string.placeholder_himno);
@@ -652,6 +676,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         }
     }
 
+    // controles del panelUp, si se muestra o no segun la version
     private void setUpPanelControls() {
         if (!version2008) {
             layoutDownload.setVisibility(View.GONE);
@@ -667,46 +692,57 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         }
     }
 
+    // boton back
     public void inputDelete(View view) {
         menosUno();
     }
 
+    // boton 0
     public void number0(View view) {
         masUno(0);
     }
 
+    // boton 9
     public void number9(View view) {
         masUno(9);
     }
 
+    // boton 8
     public void number8(View view) {
         masUno(8);
     }
 
+    // boton 7
     public void number7(View view) {
         masUno(7);
     }
 
+    // boton 6
     public void number6(View view) {
         masUno(6);
     }
 
+    // boton 5
     public void number5(View view) {
         masUno(5);
     }
 
+    // boton 4
     public void number4(View view) {
         masUno(4);
     }
 
+    // boton 3
     public void number3(View view) {
         masUno(3);
     }
 
+    // boton 2
     public void number2(View view) {
         masUno(2);
     }
 
+    // boton 1
     public void number1(View view) {
         masUno(1);
     }
@@ -777,6 +813,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         if (adView != null) {
             adView.pause();
         }
+        dbAdapter.close();
         super.onPause();
     }
 
@@ -836,7 +873,7 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
                         musicProgress.setProgress((int) (taskSnapshot.getBytesTransferred() * 100 / taskSnapshot.getTotalByteCount()));
                         musicProgress.setIndeterminate(false);
                         musicSize.setText(FileUtils.humanReadableByteCount(taskSnapshot.getBytesTransferred())
-                                + " de " + FileUtils.humanReadableByteCount(taskSnapshot.getTotalByteCount()));
+                                + " de " + FileUtils.humanReadableByteCount(taskSnapshot.getTotalByteCount()) + " Descargados");
                     }
                     musicProcent.setText(musicProgress.getProgress() + "%");
                 }
@@ -863,6 +900,9 @@ public class MainActivity extends AppCompatActivity implements MediaListenServic
         }
     }
 
+    /*
+    evita la publicidad para los sabados
+     */
     public void notAdsInSaturday() {
         Calendar currentDate = Calendar.getInstance();
         Calendar calendar1 = Calendar.getInstance();

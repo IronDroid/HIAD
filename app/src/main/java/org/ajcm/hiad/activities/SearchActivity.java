@@ -56,7 +56,6 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
 
         himnos = new ArrayList<>();
         dbAdapter = new DBAdapter(this);
-        dbAdapter.open();
         versionHimno = getIntent().getBooleanExtra("version", false);
         Cursor himnoASC = dbAdapter.getAllHimnoASC(versionHimno);
         while (himnoASC.moveToNext()) {
@@ -119,7 +118,6 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
     @Override
     public boolean onQueryTextChange(String newText) {
         filter = !TextUtils.isEmpty(newText) ? newText : null;
-        dbAdapter.open();
         himnos = new ArrayList<>();
         Cursor himnoForTitle;
         if (filter != null) {

@@ -35,7 +35,6 @@ public class DBAdapter {
         open();
         ArrayList<Himno> himnos = new ArrayList<>();
         Cursor query = db.query(tableVersion(version2008), null, null, null, null, null, null);
-        Log.e(TAG, "getAllHimno: " + query.getCount());
         while (query.moveToNext()) {
             if (version2008) {
                 himnos.add(Himno2008.fromCursor(query));
@@ -52,7 +51,6 @@ public class DBAdapter {
         open();
         ArrayList<Himno> himnos = new ArrayList<>();
         Cursor query = db.query(tableVersion(version2008), null, Himno2008.Columns.favorito + " = 1", null, null, null, null);
-        Log.e(TAG, "getAllHimno: " + query.getCount());
         while (query.moveToNext()) {
             if (version2008) {
                 himnos.add(Himno2008.fromCursor(query));
@@ -74,10 +72,12 @@ public class DBAdapter {
     }
 
     public Cursor getHimnoForTitle(String filter, boolean version2008) {
+        open();
         return db.query(tableVersion(version2008), null, DatabaseHelper.Columns.indice.name() + " LIKE '%" + filter + "%'", null, null, null, Himno2008.Columns.favorito + " DESC, " + DatabaseHelper.Columns.indice.name() + " ASC");
     }
 
     public Cursor getAllHimnoASC(boolean version2008) {
+        open();
         return db.query(tableVersion(version2008), null, null, null, null, null, Himno2008.Columns.favorito + " DESC, " + DatabaseHelper.Columns.indice.name() + " ASC");
     }
 
@@ -103,9 +103,8 @@ public class DBAdapter {
         return titulo;
     }
 
-    public DBAdapter open() throws SQLException {
+    private void open() throws SQLException {
         db = DBHelper.getWritableDatabase();
-        return this;
     }
 
     public void close() {

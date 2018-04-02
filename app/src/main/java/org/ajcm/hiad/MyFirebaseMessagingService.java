@@ -25,6 +25,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     public static final String OPEN_HIMNO = "opem_himno";
     public static final int ID_NOTIFICATION = 77;
 
+
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
@@ -32,6 +33,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         //It is optional
         Log.d(TAG, "From: " + remoteMessage.getFrom());
         Log.d(TAG, "Notification Message Body: " + remoteMessage.getNotification().getBody());
+        Log.e(TAG, "onMessageReceived: " + remoteMessage.getData());
 
         //Calling method to generate notification
         sendNotification(remoteMessage.getNotification().getBody());
@@ -49,7 +51,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_music_note_black_36dp)
-                .setContentTitle(getString(R.string.app_name))
+                .setContentTitle(getString(R.string.app_name) + ":)")
                 .setContentText(messageBody)
                 .setAutoCancel(true)
                 .setDefaults(Notification.DEFAULT_SOUND)

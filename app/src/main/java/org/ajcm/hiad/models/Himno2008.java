@@ -12,6 +12,7 @@ public class Himno2008 extends Himno{
     private boolean favorito;
     private int categoria;
     private int subCategoria;
+    private String duracion;
 
     public enum Columns {
         numero,
@@ -22,6 +23,7 @@ public class Himno2008 extends Himno{
         favorito,
         categoria,
         sub_categoria,
+        duracion,
     }
 
     public static Himno2008 fromCursor(Cursor cursor) {
@@ -34,6 +36,7 @@ public class Himno2008 extends Himno{
         himno2008.setFavorito(cursor.getInt(Columns.favorito.ordinal()) == 1);
         himno2008.setCategoria(cursor.getInt(Columns.categoria.ordinal()));
         himno2008.setSubCategoria(cursor.getInt(Columns.sub_categoria.ordinal()));
+//        himno2008.setDuracion(cursor.getString(Columns.duracion.ordinal()));
         return himno2008;
     }
 
@@ -67,5 +70,13 @@ public class Himno2008 extends Himno{
 
     public void setSubCategoria(int subCategoria) {
         this.subCategoria = subCategoria;
+    }
+
+    public String getDuracion() {
+        return duracion;
+    }
+
+    public void setDuracion(String duracion) {
+        this.duracion = duracion;
     }
 }
