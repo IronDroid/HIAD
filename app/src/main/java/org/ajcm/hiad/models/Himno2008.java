@@ -36,7 +36,8 @@ public class Himno2008 extends Himno{
         himno2008.setFavorito(cursor.getInt(Columns.favorito.ordinal()) == 1);
         himno2008.setCategoria(cursor.getInt(Columns.categoria.ordinal()));
         himno2008.setSubCategoria(cursor.getInt(Columns.sub_categoria.ordinal()));
-//        himno2008.setDuracion(cursor.getString(Columns.duracion.ordinal()));
+        // TODO: 15-05-18 agregar este campo
+        himno2008.setDuracion(cursor.getString(Columns.duracion.ordinal()));
         return himno2008;
     }
 

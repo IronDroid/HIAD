@@ -59,7 +59,6 @@ public class MusicFragment extends Fragment {
         ArrayList<Himno2008> himnosPendientes = new ArrayList<>();
         DBAdapter dbAdapter = new DBAdapter(getContext());
         ArrayList<Himno2008> himnos = (ArrayList<Himno2008>) dbAdapter.getAllHimno(true);
-        Log.e(TAG, "onCreateView: " + himnos.size());
         for (Himno himno : himnos) {
             String number = FileUtils.getStringNumber(himno.getNumero());
             File dirHimnos = new File(getContext().getFilesDir().getAbsolutePath() + "/himnos/");
@@ -73,10 +72,10 @@ public class MusicFragment extends Fragment {
         }
         dbAdapter.close();
 
-        TextView textView = (TextView) view.findViewById(R.id.no_download_label);
+        TextView textView = view.findViewById(R.id.no_download_label);
 
         Context context = view.getContext();
-        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.music_list);
+        RecyclerView recyclerView = view.findViewById(R.id.music_list);
         if (himnosDescargados.size() == 0 && param == 0) {
             recyclerView.setVisibility(View.GONE);
             textView.setVisibility(View.VISIBLE);

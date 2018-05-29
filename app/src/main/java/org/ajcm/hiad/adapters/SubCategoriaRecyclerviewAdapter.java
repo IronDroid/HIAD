@@ -1,6 +1,5 @@
 package org.ajcm.hiad.adapters;
 
-import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
@@ -10,8 +9,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.ajcm.hiad.CallbackFragments;
 import org.ajcm.hiad.R;
 import org.ajcm.hiad.fragments.ContenidoFragment;
+import org.ajcm.hiad.fragments.ContenidoMainFragment;
+import org.ajcm.hiad.fragments.MainFragment;
 import org.ajcm.hiad.models.Himno2008;
 import org.zakariya.stickyheaders.SectioningAdapter;
 
@@ -28,10 +30,19 @@ public class SubCategoriaRecyclerviewAdapter extends SectioningAdapter {
     private static final String TAG = "SubCategoriaRecyclervie";
     private ArrayList<ContenidoFragment.Section> sections;
     private FragmentActivity fragmentActivity;
+    private CallbackFragments callbackFragments;
 
     public SubCategoriaRecyclerviewAdapter(FragmentActivity context, ArrayList<ContenidoFragment.Section> sections) {
         this.sections = sections;
         this.fragmentActivity = context;
+        callbackFragments = (CallbackFragments) fragmentActivity;
+    }
+
+    @Override
+    public GhostHeaderViewHolder onCreateGhostHeaderViewHolder(ViewGroup parent) {
+        final View ghostView = new View(parent.getContext());
+        ghostView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        return new GhostHeaderViewHolder(ghostView);
     }
 
     @Override
@@ -45,6 +56,7 @@ public class SubCategoriaRecyclerviewAdapter extends SectioningAdapter {
     public HeaderViewHolder onCreateHeaderViewHolder(ViewGroup parent, int headerType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         View v = inflater.inflate(R.layout.list_item_header, parent, false);
+        Log.e(TAG, "onCreateHeaderViewHolder: ");
         return new HeaderViewHolder(v);
     }
 
@@ -55,8 +67,7 @@ public class SubCategoriaRecyclerviewAdapter extends SectioningAdapter {
         ivh.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                fragmentActivity.setResult(RESULT_OK, new Intent().putExtra("numero", himno2008.getNumero()));
-                fragmentActivity.finish();
+                callbackFragments.callbackOK(ContenidoMainFragment.class, himno2008);
             }
         });
         ivh.textView.setText(himno2008.getNumero() + " " + himno2008.getTitulo());
@@ -66,25 +77,22 @@ public class SubCategoriaRecyclerviewAdapter extends SectioningAdapter {
     public void onBindHeaderViewHolder(SectioningAdapter.HeaderViewHolder viewHolder, int sectionIndex, int headerType) {
         HeaderViewHolder hvh = (HeaderViewHolder) viewHolder;
         hvh.textView.setText(sections.get(sectionIndex).getHeaders().toUpperCase());
+        Log.e(TAG, "onBindHeaderViewHolder: " + sections.get(sectionIndex).getHeaders().toUpperCase());
     }
 
     @Override
     public boolean doesSectionHaveHeader(int sectionIndex) {
+//        Log.e(TAG, "doesSectionHaveHeader: " + TextUtils.isEmpty(sections.get(sectionIndex).getHeaders()));
         return !TextUtils.isEmpty(sections.get(sectionIndex).getHeaders());
+//        return false;
     }
 
-    public class ItemViewHolder extends SectioningAdapter.ItemViewHolder implements View.OnClickListener {
+    public class ItemViewHolder extends SectioningAdapter.ItemViewHolder {
         TextView textView;
 
         public ItemViewHolder(View itemView) {
             super(itemView);
-            textView = (TextView) itemView.findViewById(R.id.textView);
-            this.itemView.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View view) {
-            Log.e(TAG, "onClick: item");
+            textView = itemView.findViewById(R.id.subTextView);
         }
     }
 
@@ -93,27 +101,17 @@ public class SubCategoriaRecyclerviewAdapter extends SectioningAdapter {
 
         public HeaderViewHolder(View itemView) {
             super(itemView);
-            textView = (TextView) itemView.findViewById(R.id.textView);
+            textView = itemView.findViewById(R.id.headerTextView);
         }
-
-//        void updateSectionCollapseToggle(boolean sectionIsCollapsed) {
-//            @DrawableRes int id = sectionIsCollapsed
-//                    ? R.drawable.ic_expand_more_black_24dp
-//                    : R.drawable.ic_expand_less_black_24dp;
-//
-//            collapseButton.setImageDrawable(ContextCompat.getDrawable(collapseButton.getContext(), id));
-//        }
     }
 
     @Override
     public int getNumberOfSections() {
-        Log.e(TAG, "getNumberOfSections: " + sections.size());
         return sections.size();
     }
 
     @Override
     public int getNumberOfItemsInSection(int sectionIndex) {
-        Log.e(TAG, "getNumberOfItemsInSection: " + sections.get(sectionIndex));
         return sections.get(sectionIndex).getHimno2008s().size();
     }
 }

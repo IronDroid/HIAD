@@ -12,7 +12,7 @@
         <TextView
             android:id="@+id/number_himno"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="?android:attr/actionBarSize"
             android:gravity="center_vertical"
             android:paddingLeft="16dp"
             android:paddingRight="64dp"
@@ -23,7 +23,7 @@
         <TextView
             android:id="@+id/placeholder_himno"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="?android:attr/actionBarSize"
             android:gravity="center_vertical"
             android:paddingLeft="16dp"
             android:paddingRight="56dp"
@@ -48,51 +48,34 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.google.android.gms.ads.AdView
-            android:id="@+id/adView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|right"
-            apps:adSize="SMART_BANNER"
-            apps:adUnitId="@string/banner_ad_unit_id" />
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginBottom="16dp"
             android:orientation="horizontal">
 
-            <include
-                layout="@layout/dialpad"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
-
-            <LinearLayout
+            <ScrollView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:fadeScrollbars="false"
+                android:layout_weight="1">
 
-                <TextView
-                    android:id="@+id/textView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:text="@string/app_name"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:textColor="@color/colorPrimary" />
-
-                <TextView
-                    android:id="@+id/texto_alabanza"
+                <include
+                    layout="@layout/dialpad"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="@dimen/box_padding"
-                    android:layout_marginRight="@dimen/box_padding"
-                    android:gravity="center_horizontal"
-                    android:padding="@dimen/btn_flat_padding" />
+                    android:layout_height="wrap_content" />
+            </ScrollView>
 
-            </LinearLayout>
+            <TextView
+                android:id="@+id/texto_alabanza"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="@dimen/box_padding"
+                android:layout_marginRight="@dimen/box_padding"
+                android:layout_weight="1"
+                android:gravity="center_horizontal"
+                android:padding="@dimen/btn_flat_padding"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
         </LinearLayout>
     </FrameLayout>
 

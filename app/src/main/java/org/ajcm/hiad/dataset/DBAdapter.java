@@ -31,6 +31,20 @@ public class DBAdapter {
         DBHelper = new DatabaseHelper(this.context);
     }
 
+    public Himno getHimno(int number, boolean version2008) {
+        open();
+        Himno himno = null;
+        Cursor query = db.query(tableVersion(version2008), null, Himno1962.Columns.numero.name() + " = "+ number, null, null, null, null);
+        query.moveToFirst();
+        if (version2008) {
+            himno = Himno2008.fromCursor(query);
+        } else {
+            himno = Himno1962.fromCursor(query);
+        }
+        query.close();
+        return himno;
+    }
+
     public ArrayList<? extends Himno> getAllHimno(boolean version2008) {
         open();
         ArrayList<Himno> himnos = new ArrayList<>();
@@ -68,7 +82,13 @@ public class DBAdapter {
         ContentValues values = new ContentValues();
         values.put(Himno2008.Columns.favorito.name(), fav);
         db.update(tableVersion(version2008), values, Himno2008.Columns.numero.name() + " = " + numero, null);
+    }
 
+    public void setDuration(int numero, String duration, boolean version2008) {
+        open();
+        ContentValues values = new ContentValues();
+        values.put(Himno2008.Columns.duracion.name(), duration);
+        db.update(tableVersion(version2008), values, Himno2008.Columns.numero.name() + " = " + numero, null);
     }
 
     public Cursor getHimnoForTitle(String filter, boolean version2008) {

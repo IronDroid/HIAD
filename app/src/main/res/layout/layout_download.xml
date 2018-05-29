@@ -4,7 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="@dimen/activity_vertical_margin_half"
-    android:clickable="true"
     android:gravity="center_vertical"
     android:orientation="horizontal">
 
@@ -13,8 +12,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="?selectableItemBackground"
-        android:paddingLeft="@dimen/activity_vertical_margin_half"
-        android:paddingRight="@dimen/activity_vertical_margin_half"
+        android:layout_marginLeft="@dimen/activity_vertical_margin_half"
+        android:layout_marginRight="@dimen/activity_vertical_margin_half"
         android:src="@drawable/ic_file_download_white_24dp"
         android:tint="@color/colorAccent" />
 
@@ -31,6 +30,7 @@
             <TextView
                 android:textColor="#313131"
                 android:id="@+id/title_download"
+                android:text="titulo del himno para descargar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="@dimen/activity_vertical_margin"
@@ -50,6 +50,7 @@
 
         <TextView
             android:id="@+id/music_size"
+            android:text="tamaño del archivo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/activity_vertical_margin"
@@ -68,6 +69,7 @@
     <TextView
         android:id="@+id/music_procent"
         android:layout_width="50dp"
+        android:text="100%"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:textAppearance="?android:textAppearanceMedium"

@@ -4,20 +4,18 @@ import android.content.Context;
 import android.database.Cursor;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.util.Pair;
-import android.util.Log;
 
 import org.ajcm.hiad.dataset.DBAdapter;
 import org.ajcm.hiad.fragments.ContenidoFragment;
-import org.ajcm.hiad.fragments.MusicFragment;
 
 import java.util.ArrayList;
 
 /**
  * Adaptador del pagerview
  */
-public class ContenidoPagerAdapter extends FragmentPagerAdapter {
+public class ContenidoPagerAdapter extends FragmentStatePagerAdapter {
 
     private static final String TAG = "PagerAdapter";
     private Context context;
@@ -28,7 +26,6 @@ public class ContenidoPagerAdapter extends FragmentPagerAdapter {
         super(fm);
         this.context = context;
         dbAdapter = new DBAdapter(this.context);
-        Log.e(TAG, "ContenidoPagerAdapter: " + dbAdapter);
         Cursor categorias = dbAdapter.getCategorias();
         titles = new ArrayList<>();
         while (categorias.moveToNext()) {

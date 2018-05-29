@@ -5,30 +5,4 @@
         android:icon="@drawable/ic_search_white_24dp"
         android:title="@string/himnos_list"
         app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/action_music"
-        android:icon="@drawable/ic_queue_music_white_24dp"
-        android:title="@string/about_music"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_contenido"
-        android:title="@string/about_contenido"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_version_himno"
-        android:checkable="true"
-        android:title="@string/version_himno"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_share"
-        android:title="@string/share_app"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_rate"
-        android:title="@string/rate_app"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_about"
-        android:title="@string/about_string"
-        app:showAsAction="never" />
 </menu>

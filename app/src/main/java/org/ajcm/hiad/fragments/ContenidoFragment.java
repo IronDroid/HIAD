@@ -73,9 +73,7 @@ public class ContenidoFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_contenido, container, false);
         // Set the adapter
         if (view instanceof RecyclerView) {
-            Context context = view.getContext();
             RecyclerView recyclerView = (RecyclerView) view;
-
 
             StickyHeaderLayoutManager stickyHeaderLayoutManager = new StickyHeaderLayoutManager();
             recyclerView.setLayoutManager(stickyHeaderLayoutManager);
@@ -94,7 +92,6 @@ public class ContenidoFragment extends Fragment {
             recyclerView.setLayoutManager(stickyHeaderLayoutManager);
             DBAdapter dbAdapter = new DBAdapter(getContext());
             Cursor himnoByCategoria = dbAdapter.getHimnoByCategoria(mParam1);
-            Log.e(TAG, "onCreateView: himnos categoria " + mParam1 + " - " + himnoByCategoria.getCount());
             ArrayList<Section> sections = new ArrayList<>();
             Section section = null;
             while (himnoByCategoria.moveToNext()) {
