@@ -4,6 +4,7 @@ package org.ajcm.hiad.fragments;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,12 +32,12 @@ import java.util.Random;
 public class MainFragment extends Fragment implements View.OnClickListener {
 
     private static final String TAG = "MainFragment";
-    private TextView numberTextView;
-    private TextView placeholderHimno;
-
     private DBAdapter dbAdapter;
     private ArrayList<? extends Himno> listHimnos;
     private Himno himno;
+
+    private TextView numberTextView;
+    private TextView placeholderHimno;
 
     private boolean version2008 = true;
     private String numberString;
@@ -50,7 +51,8 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putString("key_fragment", "lol!");
+        outState.putInt("number_integer", numberInteger);
+        outState.putString("number_string", numberString);
         Log.e(TAG, "onSaveInstanceState: guardado");
     }
 
@@ -66,10 +68,6 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         numberInteger = 0;
         numberString = "";
-        if (savedInstanceState != null) {
-            // TODO: 14-05-18 restaurar valores guardados
-            Log.e(TAG, "onCreate: " + savedInstanceState.getString("key_fragment"));
-        }
         dbAdapter = new DBAdapter(getContext());
         listHimnos = dbAdapter.getAllHimno(version2008);
         if (version2008) {
@@ -85,6 +83,13 @@ public class MainFragment extends Fragment implements View.OnClickListener {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
         initView(view);
+        if (savedInstanceState != null) {
+            numberInteger = savedInstanceState.getInt("number_integer");
+            numberString = savedInstanceState.getString("number_string");
+            Log.e(TAG, "onCreateView: "+ numberInteger);
+            setTitleShow(numberInteger);
+            placeholderHimno.setText("");
+        }
 
         String[] textos = getResources().getStringArray(R.array.textos_alabanza);
         int random = new Random().nextInt(textos.length);

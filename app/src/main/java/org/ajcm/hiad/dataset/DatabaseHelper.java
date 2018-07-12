@@ -33,7 +33,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        Log.e(TAG, "DatabaseHelper: ");
         this.context = context;
         preferences = new UserPreferences(this.context);
         pathDB = "/data/data/" + context.getPackageName() + "/databases/" + DATABASE_NAME;

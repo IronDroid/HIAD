@@ -90,30 +90,24 @@ public class MainActivity extends AppCompatActivity implements
     private static final int OLD_LIMIT = 527;
     private static final int NEW_LIMIT = 613;
 
-    private TextView placeholderHimno;
     private AdView adView;
-
-    private ZoomTextView textHimno;
-    private TextView toolbarTitle;
-    private MaterialFavoriteButton favoriteButton;
-    private SlidingUpPanelLayout upPanelLayout;
     private DBAdapter dbAdapter;
-    private ArrayList<? extends Himno> himnos;
 
     private Himno2008 himno;
     private boolean version2008 = true;
     private int limit;
 
-    private boolean firstPlay;
-
     private boolean toastClose;
     private Toast toast;
 
-    private FirebaseAnalytics analytics;
-
+    private boolean firstPlay;
     private Intent intentService;
     private MediaListenService listenService;
 
+    private ZoomTextView textHimno;
+    private TextView toolbarTitle;
+    private MaterialFavoriteButton favoriteButton;
+    private SlidingUpPanelLayout upPanelLayout;
     private LinearLayout layoutDownload;
     private LinearLayout layoutPlay;
     private SeekBar seekBar;
@@ -129,6 +123,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private StorageReference reference;
     private FileDownloadTask fileDownloadTask;
+    private FirebaseAnalytics analytics;
 
     private UpPanelContract.Presenter presenter;
 
@@ -144,14 +139,11 @@ public class MainActivity extends AppCompatActivity implements
             analitycsMethod();
         }
 
-        limit = NEW_LIMIT;
-
         setupUpPanel();
-//        restoreDataSaved(savedInstanceState);
-
-//        setUpPanelControls();
 
         dbAdapter = new DBAdapter(getApplicationContext());
+        restoreDataSaved(savedInstanceState);
+        limit = version2008 ? NEW_LIMIT : OLD_LIMIT;
 
         presenter = new UpPanelPresenter(this);
         favoriteButton.setOnFavoriteAnimationEndListener(new MaterialFavoriteButton.OnFavoriteAnimationEndListener() {
@@ -164,7 +156,6 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
 
-//
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int position, boolean user) {
@@ -239,17 +230,20 @@ public class MainActivity extends AppCompatActivity implements
                 }
             }
         });
-//
+
         intentService = new Intent(this, MediaListenService.class);
         if (!isServiceRunning()) {
+            Log.e(TAG, "onCreate: create service");
             startService(intentService); //Starting the service
             bindService(intentService, mConnection, Context.BIND_AUTO_CREATE); //Binding to the service!
+        } else {
+            Log.e(TAG, "onCreate: service running");
         }
-//
+
         String urlFirebase = "gs://tu-himnario-adventista.appspot.com";
         FirebaseStorage storage = FirebaseStorage.getInstance();
         reference = storage.getReferenceFromUrl(urlFirebase);
-//
+
 //        actionNotification();
 
         // TODO: 16-03-18 navigation version
@@ -295,7 +289,6 @@ public class MainActivity extends AppCompatActivity implements
         setMainFragment();
         favoriteButton = findViewById(R.id.fav_button);
         textHimno = findViewById(R.id.text_himno);
-        placeholderHimno = findViewById(R.id.placeholder_himno);
         layoutDownload = findViewById(R.id.layout_download);
         layoutPlay = findViewById(R.id.layout_play);
         seekBar = findViewById(R.id.seek_bar);
@@ -346,10 +339,12 @@ public class MainActivity extends AppCompatActivity implements
     private void restoreDataSaved(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             version2008 = savedInstanceState.getBoolean(VERSION_HIMNOS);
-            toolbarTitle.setText(savedInstanceState.getString(TOOLBAR_PANEL_TITLE));
-            textHimno.setText(savedInstanceState.getString(TEXT_HIMNO));
+            int numberHimno = savedInstanceState.getInt(NUMERO, 0);
+            if (numberHimno > 0) {
+                Himno himno = dbAdapter.getHimno(numberHimno, version2008);
+                openUpPanel(himno);
+            }
             seekBar.setMax(savedInstanceState.getInt("seek_max"));
-            musicDuration.setText(savedInstanceState.getString("duration"));
             firstPlay = savedInstanceState.getBoolean("first_play");
             if (savedInstanceState.getBoolean("is_playing")) {
                 buttonPlay.setImageResource(R.drawable.ic_pause_circle_filled_black_36dp);
@@ -363,19 +358,16 @@ public class MainActivity extends AppCompatActivity implements
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         // TODO: 05-04-18 data saved
-//        outState.putString(CURRENT_TEXT_NUMBER, numberHimno.getText().toString());
-//        outState.putString(TOOLBAR_PANEL_TITLE, toolbarTitle.getText().toString());
-//        outState.putString(NUM_STRING, numString);
-//        outState.putString(TEXT_HIMNO, textHimno.getText().toString());
-//        outState.putInt(NUMERO, numero);
-//        if (listenService != null) {
-//            outState.putBoolean("is_playing", listenService.isPlaying());
-//        }
-//        Log.e(TAG, "onSaveInstanceState: se guarda version " + version2008);
-//        outState.putBoolean(VERSION_HIMNOS, version2008);
-//        outState.putInt("seek_max", seekBar.getMax());
-//        outState.putString("duration", musicDuration.getText().toString());
-//        outState.putBoolean("first_play", firstPlay);
+        Log.e(TAG, "onSaveInstanceState: se guarda version " + version2008);
+        outState.putBoolean(VERSION_HIMNOS, version2008);
+        if (himno != null) {
+            outState.putInt(NUMERO, himno.getNumero());
+        }
+        if (listenService != null) {
+            outState.putBoolean("is_playing", listenService.isPlaying());
+        }
+        outState.putInt("seek_max", seekBar.getMax());
+        outState.putBoolean("first_play", firstPlay);
     }
 
     @Override
@@ -428,7 +420,7 @@ public class MainActivity extends AppCompatActivity implements
             item.setChecked(true);
         } else {
             Log.e(TAG, "onBackPressed: ");
-//            stopService(intentService);
+            stopService(intentService);
             super.onBackPressed();
         }
 
@@ -442,25 +434,6 @@ public class MainActivity extends AppCompatActivity implements
             int numberHimno = data.getExtras().getInt("numero", 0);
             Himno himno = dbAdapter.getHimno(numberHimno, version2008);
             this.openUpPanel(himno);
-
-//            numero = data.getExtras().getInt("numero", 0);
-//            if (numero > 0) {
-//                if (version2008) {
-//                    favoriteButton.setFavorite(((Himno2008) himnos.get(numero - 1)).isFavorito());
-//                    musicSize.setText(FileUtils.humanReadableByteCount(((Himno2008) himnos.get(numero - 1)).getFileSize()));
-//                } else {
-//                    favoriteButton.setFavorite(((Himno1962) himnos.get(numero - 1)).isFavorito());
-//                }
-//                placeholderHimno.setText("");
-//                numString = "" + numero;
-//                upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
-//                String titleShow = numString + ". " + himnos.get(numero - 1).getTitulo();
-//                toolbarTitle.setText(titleShow);
-//                titleDownload.setText(titleShow);
-//                titleDownload.setText(titleShow);
-//                textHimno.setText(himnos.get(numero - 1).getLetra());
-//                setUpPanelControls();
-//            }
         }
     }
 
@@ -537,15 +510,12 @@ public class MainActivity extends AppCompatActivity implements
             MediaListenService.LocalBinder binder = (MediaListenService.LocalBinder) service;
             listenService = binder.getServiceInstance(); //Get instance of your service!
             listenService.registerClient(MainActivity.this); //Activity register in the service as client for callabcks!
-//            tvServiceState.setText("Connected to service...");
-//            tbStartTask.setEnabled(true);
+            Log.e(TAG, "onServiceConnected: playing " + listenService.isPlaying());
         }
 
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
             Log.e(TAG, "onService Disconnected");
-//            tvServiceState.setText("Service disconnected");
-//            tbStartTask.setEnabled(false);
         }
     };
 
@@ -581,15 +551,15 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onStop() {
         super.onStop();
-        stopService(intentService);
+        Log.e(TAG, "onStop: " + listenService.isPlaying());
+//            stopService(intentService);
         unbindService(mConnection);
-        Log.e(TAG, "onStop: ");
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        startService(intentService); //Starting the service
+//        startService(intentService); //Starting the service
         bindService(intentService, mConnection, Context.BIND_AUTO_CREATE); //Binding to the service!
         Log.e(TAG, "onStart: ");
     }
@@ -682,14 +652,6 @@ public class MainActivity extends AppCompatActivity implements
                 }
             });
         }
-    }
-
-    private void showLayoutDownload() {
-        layoutDownload.setVisibility(View.VISIBLE);
-    }
-
-    private void hideLayoutDownload() {
-        layoutDownload.setVisibility(View.GONE);
     }
 
     /*
@@ -818,7 +780,12 @@ public class MainActivity extends AppCompatActivity implements
         toolbarTitle.setText(titleShow);
         textHimno.setText(himno.getLetra());
         titleDownload.setText(titleShow);
-        musicSize.setText(FileUtils.humanReadableByteCount(((Himno2008) himno).getFileSize()));
+        musicSize.setText(FileUtils.humanReadableByteCount(himno.getFileSize()));
+        if (version2008) {
+            favoriteButton.setFavorite(himno.isFavorito());
+        } else {
+            favoriteButton.setFavorite(himno.isFavorito());
+        }
         upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
         setUpPanelControls();
     }
