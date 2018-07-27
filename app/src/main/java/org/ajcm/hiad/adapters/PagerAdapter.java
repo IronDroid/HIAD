@@ -10,7 +10,7 @@ import org.ajcm.hiad.fragments.MusicFragment;
 /**
  * Adaptador del pagerview
  */
-public class PagerAdapter extends FragmentPagerAdapter {
+public class PagerAdapter extends FragmentStatePagerAdapter {
 
     private static final String TAG = "PagerAdapter";
 

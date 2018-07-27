@@ -36,8 +36,8 @@ public class DownloadFragment extends Fragment {
         adapter = new PagerAdapter(getFragmentManager());
 
         // TODO: 03-10-17 en esta parte se tiene que hacer el refresh cuando se boora o se descarga un himnos
-        MusicFragment aa = (MusicFragment) adapter.getItem(1);
-        aa.refreshList();
+//        MusicFragment aa = (MusicFragment) adapter.getItem(1);
+//        aa.refreshList();
 
         viewPager.setAdapter(adapter);
         tabLayout.setupWithViewPager(viewPager);

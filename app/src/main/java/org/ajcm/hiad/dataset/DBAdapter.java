@@ -6,12 +6,14 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
+import android.util.Pair;
 
 import org.ajcm.hiad.models.Himno;
 import org.ajcm.hiad.models.Himno1962;
 import org.ajcm.hiad.models.Himno2008;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Jhon_Li
@@ -34,7 +36,7 @@ public class DBAdapter {
     public Himno getHimno(int number, boolean version2008) {
         open();
         Himno himno = null;
-        Cursor query = db.query(tableVersion(version2008), null, Himno1962.Columns.numero.name() + " = "+ number, null, null, null, null);
+        Cursor query = db.query(tableVersion(version2008), null, Himno1962.Columns.numero.name() + " = " + number, null, null, null, null);
         query.moveToFirst();
         if (version2008) {
             himno = Himno2008.fromCursor(query);
@@ -61,6 +63,7 @@ public class DBAdapter {
         return himnos;
     }
 
+
     public ArrayList<? extends Himno> getAllHimnoFav(boolean version2008) {
         open();
         ArrayList<Himno> himnos = new ArrayList<>();
@@ -71,6 +74,18 @@ public class DBAdapter {
             } else {
                 himnos.add(Himno1962.fromCursor(query));
             }
+        }
+
+        query.close();
+        return himnos;
+    }
+
+    public ArrayList<Integer> getAllHimnoFavCursor(boolean version2008) {
+        open();
+        ArrayList<Integer> himnos = new ArrayList<>();
+        Cursor query = db.query(tableVersion(version2008), null, Himno2008.Columns.favorito + " = 1", null, null, null, null);
+        while (query.moveToNext()) {
+            himnos.add(query.getInt(Himno2008.Columns.numero.ordinal()));
         }
 
         query.close();

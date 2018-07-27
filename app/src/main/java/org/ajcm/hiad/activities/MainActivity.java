@@ -27,10 +27,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -50,7 +50,6 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import org.ajcm.hiad.BuildConfig;
 import org.ajcm.hiad.CallbackFragments;
 import org.ajcm.hiad.R;
-import org.ajcm.hiad.contracts.UpPanelContract;
 import org.ajcm.hiad.dataset.DBAdapter;
 import org.ajcm.hiad.fragments.ContenidoMainFragment;
 import org.ajcm.hiad.fragments.DownloadFragment;
@@ -58,7 +57,6 @@ import org.ajcm.hiad.fragments.MainFragment;
 import org.ajcm.hiad.models.Himno;
 import org.ajcm.hiad.models.Himno1962;
 import org.ajcm.hiad.models.Himno2008;
-import org.ajcm.hiad.presenters.UpPanelPresenter;
 import org.ajcm.hiad.services.MediaListenService;
 import org.ajcm.hiad.utils.ConnectionUtils;
 import org.ajcm.hiad.utils.FileUtils;
@@ -75,8 +73,7 @@ import static org.ajcm.hiad.MyFirebaseMessagingService.OPEN_HIMNO;
 public class MainActivity extends AppCompatActivity implements
         MediaListenService.MediaServiceCallbacks,
         NavigationView.OnNavigationItemSelectedListener,
-        CallbackFragments,
-        UpPanelContract.View {
+        CallbackFragments {
 
     private static final String TAG = "MainActivity";
     private static final String CURRENT_TEXT_NUMBER = "current_text_number";
@@ -87,15 +84,12 @@ public class MainActivity extends AppCompatActivity implements
     private static final String VERSION_HIMNOS = "version";
     private static final String TEXT_HIMNO = "text_himno";
     private static final int REQUEST_SEARCH_HIMNO = 777;
-    private static final int OLD_LIMIT = 527;
-    private static final int NEW_LIMIT = 613;
 
     private AdView adView;
     private DBAdapter dbAdapter;
 
     private Himno2008 himno;
     private boolean version2008 = true;
-    private int limit;
 
     private boolean toastClose;
     private Toast toast;
@@ -125,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements
     private FileDownloadTask fileDownloadTask;
     private FirebaseAnalytics analytics;
 
-    private UpPanelContract.Presenter presenter;
+    String tagFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -134,18 +128,88 @@ public class MainActivity extends AppCompatActivity implements
 
         initLayout();
 
-        if (!BuildConfig.DEBUG) {
-            notAdsInSaturday();
-            analitycsMethod();
-        }
-
         setupUpPanel();
 
         dbAdapter = new DBAdapter(getApplicationContext());
         restoreDataSaved(savedInstanceState);
-        limit = version2008 ? NEW_LIMIT : OLD_LIMIT;
 
-        presenter = new UpPanelPresenter(this);
+        onListeners();
+
+        initMediaListener();
+
+        initFirebaseStorage();
+
+//        actionNotification();
+
+
+        // TODO: 16-03-18 modo nocturno
+//        menuItem = menu.findItem(R.id.nav_mode);
+//        actionView = MenuItemCompat.getActionView(menuItem);
+//        switcher = (SwitchCompat) actionView.findViewById(R.id.switcher);
+//        switcher.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Toast.makeText(MainActivity.this, "mode click " + ((SwitchCompat) view).isChecked(), Toast.LENGTH_SHORT).show();
+//            }
+//        });
+    }
+
+    private void initFirebaseStorage() {
+        String urlFirebase = "gs://tu-himnario-adventista.appspot.com";
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+        reference = storage.getReferenceFromUrl(urlFirebase);
+    }
+
+    private void initMediaListener() {
+        intentService = new Intent(this, MediaListenService.class);
+        if (!isServiceRunning()) {
+            Log.e(TAG, "onCreate: create service");
+            startService(intentService); //Starting the service
+            bindService(intentService, mConnection, Context.BIND_AUTO_CREATE); //Binding to the service!
+        } else {
+            Log.e(TAG, "onCreate: service running");
+        }
+    }
+
+    private void initLayout() {
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            setSupportActionBar(toolbar);
+        }
+        final DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        // color del statusbar
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimary));
+        }
+
+        favoriteButton = findViewById(R.id.fav_button);
+        textHimno = findViewById(R.id.text_himno);
+        layoutDownload = findViewById(R.id.layout_download);
+        layoutPlay = findViewById(R.id.layout_play);
+        seekBar = findViewById(R.id.seek_bar);
+        buttonDownload = findViewById(R.id.music_download);
+        buttonCancel = findViewById(R.id.music_cancel);
+        buttonPlay = findViewById(R.id.button_play);
+        musicSize = findViewById(R.id.music_size);
+        musicTime = findViewById(R.id.music_time);
+        musicDuration = findViewById(R.id.music_duration);
+        musicProcent = findViewById(R.id.music_procent);
+        titleDownload = findViewById(R.id.title_download);
+        musicProgress = findViewById(R.id.music_progress);
+
+        if (!BuildConfig.DEBUG) {
+            notAdsInSaturday();
+            analitycsMethod();
+        }
+    }
+
+    private void onListeners() {
         favoriteButton.setOnFavoriteAnimationEndListener(new MaterialFavoriteButton.OnFavoriteAnimationEndListener() {
             @Override
             public void onAnimationEnd(MaterialFavoriteButton buttonView, boolean favorite) {
@@ -231,82 +295,38 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
 
-        intentService = new Intent(this, MediaListenService.class);
-        if (!isServiceRunning()) {
-            Log.e(TAG, "onCreate: create service");
-            startService(intentService); //Starting the service
-            bindService(intentService, mConnection, Context.BIND_AUTO_CREATE); //Binding to the service!
-        } else {
-            Log.e(TAG, "onCreate: service running");
-        }
-
-        String urlFirebase = "gs://tu-himnario-adventista.appspot.com";
-        FirebaseStorage storage = FirebaseStorage.getInstance();
-        reference = storage.getReferenceFromUrl(urlFirebase);
-
-//        actionNotification();
-
         // TODO: 16-03-18 navigation version
-//        Menu menu = navigationView.getMenu();
-//        MenuItem menuItem = menu.findItem(R.id.nav_version);
-//        View actionView = MenuItemCompat.getActionView(menuItem);
-//        SwitchCompat switcher = (SwitchCompat) actionView.findViewById(R.id.switcher);
-//        switcher.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Toast.makeText(MainActivity.this, "version click " + ((SwitchCompat) view).isChecked(), Toast.LENGTH_SHORT).show();
-//            }
-//        });
-        // TODO: 16-03-18 modo nocturno
-//        menuItem = menu.findItem(R.id.nav_mode);
-//        actionView = MenuItemCompat.getActionView(menuItem);
-//        switcher = (SwitchCompat) actionView.findViewById(R.id.switcher);
-//        switcher.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Toast.makeText(MainActivity.this, "mode click " + ((SwitchCompat) view).isChecked(), Toast.LENGTH_SHORT).show();
-//            }
-//        });
-    }
-
-    private void initLayout() {
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        if (toolbar != null) {
-            setSupportActionBar(toolbar);
-        }
-        final DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
-        // color del statusbar
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimary));
-        }
-        setMainFragment();
-        favoriteButton = findViewById(R.id.fav_button);
-        textHimno = findViewById(R.id.text_himno);
-        layoutDownload = findViewById(R.id.layout_download);
-        layoutPlay = findViewById(R.id.layout_play);
-        seekBar = findViewById(R.id.seek_bar);
-        buttonDownload = findViewById(R.id.music_download);
-        buttonCancel = findViewById(R.id.music_cancel);
-        buttonPlay = findViewById(R.id.button_play);
-        musicSize = findViewById(R.id.music_size);
-        musicTime = findViewById(R.id.music_time);
-        musicDuration = findViewById(R.id.music_duration);
-        musicProcent = findViewById(R.id.music_procent);
-        titleDownload = findViewById(R.id.title_download);
-        musicProgress = findViewById(R.id.music_progress);
+        Menu menu = navigationView.getMenu();
+        MenuItem menuItem = menu.findItem(R.id.nav_version);
+        View actionView = MenuItemCompat.getActionView(menuItem);
+        SwitchCompat switcher = actionView.findViewById(R.id.switcher);
+        switcher.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
+                if (!checked) {
+                    version2008 = true;
+                    favoriteButton.setVisibility(View.VISIBLE);
+                } else {
+                    version2008 = false;
+                    favoriteButton.setVisibility(View.GONE);
+                    Bundle params = new Bundle();
+                    params.putString("Category", "Action");
+                    params.putString("Action", "Version_Antiguo");
+//                    analytics.logEvent("Change_version", params);
+                }
+                setMainFragment();
+                Log.e(TAG, "onCheckedChanged: " + version2008);
+            }
+        });
     }
 
     private void setMainFragment() {
-        Fragment fragment = MainFragment.newInstance();
+        Fragment fragment = MainFragment.newInstance(version2008);
         FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.content, fragment, MainFragment.class.getSimpleName()).commit();
+        tagFragment = MainFragment.class.getSimpleName();
+        fragmentManager.beginTransaction().replace(R.id.content, fragment, tagFragment).commit();
     }
 
     // esto se activa cuando se abre la notificacion push en primer plano
@@ -351,6 +371,8 @@ public class MainActivity extends AppCompatActivity implements
             } else {
                 buttonPlay.setImageResource(R.drawable.ic_play_circle_filled_black_36dp);
             }
+        } else {
+            setMainFragment();
         }
     }
 
@@ -423,7 +445,6 @@ public class MainActivity extends AppCompatActivity implements
             stopService(intentService);
             super.onBackPressed();
         }
-
     }
 
     // resultado de la busqueda
@@ -433,7 +454,11 @@ public class MainActivity extends AppCompatActivity implements
         if (resultCode == RESULT_OK) {
             int numberHimno = data.getExtras().getInt("numero", 0);
             Himno himno = dbAdapter.getHimno(numberHimno, version2008);
-            this.openUpPanel(himno);
+            if (version2008) {
+                openUpPanel(himno);
+            } else {
+                openUpPanelOld(himno);
+            }
         }
     }
 
@@ -678,7 +703,6 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         Class fragmentClass = null;
-        String tagFragment = "";
         View actionView = MenuItemCompat.getActionView(item);
         switch (item.getItemId()) {
             case R.id.nav_main:
@@ -706,19 +730,6 @@ public class MainActivity extends AppCompatActivity implements
             case R.id.nav_version:
                 SwitchCompat switcher = actionView.findViewById(R.id.switcher);
                 switcher.performClick();
-                if (switcher.isChecked()) {
-//                    switcher.setChecked(false);
-                    version2008 = true;
-                    limit = NEW_LIMIT;
-                } else {
-//                    switcher.setChecked(true);
-                    version2008 = false;
-                    limit = OLD_LIMIT;
-                    Bundle params = new Bundle();
-                    params.putString("Category", "Action");
-                    params.putString("Action", "Version_Antiguo");
-//                    analytics.logEvent("Change_version", params);
-                }
                 // TODO: 14-07-17 agrupar estas funciones
                 break;
 
@@ -754,13 +765,8 @@ public class MainActivity extends AppCompatActivity implements
                         }).show();
                 break;
         }
-        try {
-            Fragment fragment = (Fragment) fragmentClass.newInstance();
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            tagFragment = fragmentClass.getSimpleName();
-            fragmentManager.beginTransaction().replace(R.id.content, fragment, tagFragment).commit();
-        } catch (Exception e) {
-            Log.e(TAG, "onNavigationItemSelected: " + e.getMessage(), e);
+        if (fragmentClass != null) {
+            setFragment(fragmentClass);
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -768,12 +774,29 @@ public class MainActivity extends AppCompatActivity implements
         return true;
     }
 
+    private void setFragment(Class fragmentClass) {
+        Fragment fragment = null;
+        try {
+            fragment = (Fragment) fragmentClass.newInstance();
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            tagFragment = fragmentClass.getSimpleName();
+            fragmentManager.beginTransaction().replace(R.id.content, fragment, tagFragment).commit();
+        } catch (Exception e) {
+            Log.d(TAG, "setFragment: " + e.getMessage());
+        }
+    }
+
     @Override
-    public void callbackOK(Class fragmentClass, Himno himno) {
-        openUpPanel(himno);
+    public void callbackOK(Class fragmentClass, Himno him) {
+        if (version2008) {
+            openUpPanel(him);
+        } else {
+            openUpPanelOld(him);
+        }
     }
 
     private void openUpPanel(Himno h) {
+        Log.e(TAG, "openUpPanel: " + h.getNumero());
         himno = (Himno2008) h;
         findViewById(R.id.scroll_himno).scrollTo(0, 0);
         String titleShow = himno.getNumero() + ". " + himno.getTitulo();
@@ -781,17 +804,18 @@ public class MainActivity extends AppCompatActivity implements
         textHimno.setText(himno.getLetra());
         titleDownload.setText(titleShow);
         musicSize.setText(FileUtils.humanReadableByteCount(himno.getFileSize()));
-        if (version2008) {
-            favoriteButton.setFavorite(himno.isFavorito());
-        } else {
-            favoriteButton.setFavorite(himno.isFavorito());
-        }
+        favoriteButton.setFavorite(himno.isFavorito());
         upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
         setUpPanelControls();
     }
 
-    @Override
-    public void showTitle(String title) {
-        Log.e(TAG, "showTitle: " + title);
+    private void openUpPanelOld(Himno him) {
+        Himno1962 himno1962 = (Himno1962) him;
+        findViewById(R.id.scroll_himno).scrollTo(0, 0);
+        String titleShow = himno1962.getNumero() + ". " + himno1962.getTitulo();
+        toolbarTitle.setText(titleShow);
+        textHimno.setText(himno1962.getLetra());
+        upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+        setUpPanelControls();
     }
 }

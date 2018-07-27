@@ -23,7 +23,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String VERSION_DB_PREF = "version_db";
     private Context context;
     private static final String DATABASE_NAME = "himnario";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
     private String pathDB;
     private UserPreferences preferences;
 
@@ -93,13 +93,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return false;
     }
 
-    public void checkUpdate() {
+    public boolean checkUpdate() {
         if (preferences.getInt(VERSION_DB_PREF) < DATABASE_VERSION) {
             File dbFile = new File(pathDB);
             Log.e(TAG, "onUpgrade: delete DB " + dbFile.delete());
             preferences.putBoolean("copy", false);
             loadDB();
             preferences.putInt(VERSION_DB_PREF, DATABASE_VERSION);
+            return true;
+        } else {
+            return false;
         }
     }
 

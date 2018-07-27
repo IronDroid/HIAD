@@ -46,6 +46,7 @@ public class MusicFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
+            Log.e(TAG, "onCreate: " + param);
             param = getArguments().getInt(ARG_PARAM1);
         }
     }
@@ -53,6 +54,8 @@ public class MusicFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        Log.e(TAG, "onCreateView: ");
 
         View view = inflater.inflate(R.layout.fragment_music, container, false);
         ArrayList<Himno2008> himnosDescargados = new ArrayList<>();
@@ -87,7 +90,7 @@ public class MusicFragment extends Fragment {
         return view;
     }
 
-    public void refreshList(){
+    public void refreshList() {
         Log.e(TAG, "refreshList: ");
     }
 }
