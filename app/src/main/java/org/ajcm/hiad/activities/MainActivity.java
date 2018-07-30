@@ -316,8 +316,11 @@ public class MainActivity extends AppCompatActivity implements
                     params.putString("Action", "Version_Antiguo");
 //                    analytics.logEvent("Change_version", params);
                 }
-                setMainFragment();
-                Log.e(TAG, "onCheckedChanged: " + version2008);
+                if (userInteraction) {
+                    setMainFragment();
+                    userInteraction = false;
+                    Log.e(TAG, "onCheckedChanged: " + version2008);
+                }
             }
         });
     }
@@ -359,10 +362,15 @@ public class MainActivity extends AppCompatActivity implements
     private void restoreDataSaved(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             version2008 = savedInstanceState.getBoolean(VERSION_HIMNOS);
+            Log.e(TAG, "restoreDataSaved: " + version2008);
             int numberHimno = savedInstanceState.getInt(NUMERO, 0);
             if (numberHimno > 0) {
                 Himno himno = dbAdapter.getHimno(numberHimno, version2008);
-                openUpPanel(himno);
+                if (version2008) {
+                    openUpPanel(himno);
+                } else {
+                    openUpPanelOld(himno);
+                }
             }
             seekBar.setMax(savedInstanceState.getInt("seek_max"));
             firstPlay = savedInstanceState.getBoolean("first_play");
@@ -700,6 +708,8 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+    private boolean userInteraction;
+
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         Class fragmentClass = null;
@@ -729,6 +739,7 @@ public class MainActivity extends AppCompatActivity implements
                 break;
             case R.id.nav_version:
                 SwitchCompat switcher = actionView.findViewById(R.id.switcher);
+                userInteraction = true;
                 switcher.performClick();
                 // TODO: 14-07-17 agrupar estas funciones
                 break;
@@ -766,7 +777,11 @@ public class MainActivity extends AppCompatActivity implements
                 break;
         }
         if (fragmentClass != null) {
-            setFragment(fragmentClass);
+            if (fragmentClass.getSimpleName().equals(MainFragment.class.getSimpleName())) {
+                setMainFragment();
+            } else {
+                setFragment(fragmentClass);
+            }
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);

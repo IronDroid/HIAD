@@ -4,7 +4,6 @@ package org.ajcm.hiad.fragments;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -33,6 +32,8 @@ public class MainFragment extends Fragment implements View.OnClickListener {
 
     private static final String TAG = "MainFragment";
     private static final String KEY_VERSION = "key_version";
+    private static final String KEY_NUMBER_INTEGER = "key_number_integer";
+    private static final String KEY_NUMBER_STRING = "key_number_string";
     private static final int OLD_LIMIT = 527;
     private static final int NEW_LIMIT = 613;
     private int limit;
@@ -55,8 +56,8 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt("number_integer", numberInteger);
-        outState.putString("number_string", numberString);
+        outState.putInt(KEY_NUMBER_INTEGER, numberInteger);
+        outState.putString(KEY_NUMBER_STRING, numberString);
         Log.e(TAG, "onSaveInstanceState: guardado");
     }
 
@@ -64,6 +65,7 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         MainFragment fragment = new MainFragment();
         Bundle args = new Bundle();
         args.putBoolean(KEY_VERSION, version2008);
+        Log.e(TAG, "newInstance: version: " + version2008);
         fragment.setArguments(args);
         return fragment;
     }
@@ -74,7 +76,7 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         numberInteger = 0;
         numberString = "";
         dbAdapter = new DBAdapter(getContext());
-        version2008 = getArguments().getBoolean(KEY_VERSION);
+        version2008 = getArguments().getBoolean(KEY_VERSION, true);
         listHimnos = dbAdapter.getAllHimno(version2008);
         if (version2008) {
             himno = new Himno2008();
@@ -83,6 +85,7 @@ public class MainFragment extends Fragment implements View.OnClickListener {
             himno = new Himno1962();
             limit = OLD_LIMIT;
         }
+        Log.e(TAG, "onCreate: " + listHimnos.size());
         dbAdapter.close();
     }
 
@@ -92,12 +95,15 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
         initView(view);
         if (savedInstanceState != null) {
-            numberInteger = savedInstanceState.getInt("number_integer");
-            numberString = savedInstanceState.getString("number_string");
-            Log.e(TAG, "onCreateView: " + numberInteger);
-            setTitleShow(numberInteger);
-            placeholderHimno.setText("");
+            numberInteger = savedInstanceState.getInt(KEY_NUMBER_INTEGER);
+            numberString = savedInstanceState.getString(KEY_NUMBER_STRING);
+            if (numberInteger > 0) {
+                placeholderHimno.setText("");
+                setTitleShow(numberInteger);
+            }
         }
+        Log.e(TAG, "onCreateView: " + savedInstanceState);
+        Log.e(TAG, "onCreateView: " + numberInteger);
 
         String[] textos = getResources().getStringArray(R.array.textos_alabanza);
         int random = new Random().nextInt(textos.length);
@@ -157,8 +163,9 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     }
 
     public void okButton() {
+        Log.e(TAG, "okButton: " + numberInteger);
         if (numberInteger > 0) {
-            Log.e(TAG, "okButton: "+himno.getNumero() );
+            Log.e(TAG, "okButton: " + himno.getNumero());
             callbackFragments.callbackOK(MainFragment.class, himno);
             setPlaceholderHimno();
         }
@@ -166,13 +173,13 @@ public class MainFragment extends Fragment implements View.OnClickListener {
 
     // se aumenta un digito al numero
     public void masUno(int num) {
-        Log.e(TAG, "masUno: "+numberString );
+        Log.e(TAG, "masUno: " + numberString);
         if (numberString.length() > 2) {
             return;
         }
         numberString = numberString + num;
         numberInteger = Integer.parseInt(numberString);
-        Log.e(TAG, "masUno: "+numberInteger );
+        Log.e(TAG, "masUno: " + numberInteger);
         if (numberInteger <= limit && numberInteger > 0) {
             setTitleShow(numberInteger);
             placeholderHimno.setText("");
