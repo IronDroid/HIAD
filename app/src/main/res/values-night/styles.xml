@@ -1,0 +1,25 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+
+        <item name="android:windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="myColor">@color/my_color_light</item>
+        <item name="backgroundWindow">@color/bg_dark</item>
+    </style>
+
+    <style name="AppThemeToolbar" parent="AppTheme">
+        <item name="android:textColorPrimary">@color/whiteText</item>
+        <item name="android:textColorSecondary">@color/whiteText</item>
+    </style>
+
+    <style name="ButtonDialPadTheme" parent="Theme.AppCompat.Light">
+        <item name="colorControlHighlight">@color/whiteHintText</item>
+        <item name="colorButtonNormal">@color/whiteText</item>
+    </style>
+</resources>

@@ -7,10 +7,15 @@
 
     <color name="whiteText">#fefefe</color>
     <color name="whiteHintText">#f2f2f2</color>
-    <color name="blackText">#000000</color>
+    <color name="blackText">#010101</color>
+
+    <color name="my_color_dark">#e57373</color>
+    <color name="my_color_light">#42a5f5</color>
 
     <color name="flat_pressed">#66999999</color>
     <color name="flat_disabled_text">#40000000</color>
     <color name="flat_normal_text">#000000</color>
 
+    <color name="bg_light">#fafafa</color>
+    <color name="bg_dark">#455a64</color>
 </resources>

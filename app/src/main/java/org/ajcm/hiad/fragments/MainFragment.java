@@ -56,6 +56,8 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
+        Log.e(TAG, "onSaveInstanceState: " + numberInteger);
+        Log.e(TAG, "onSaveInstanceState: " + numberString);
         outState.putInt(KEY_NUMBER_INTEGER, numberInteger);
         outState.putString(KEY_NUMBER_STRING, numberString);
         Log.e(TAG, "onSaveInstanceState: guardado");
@@ -173,16 +175,22 @@ public class MainFragment extends Fragment implements View.OnClickListener {
 
     // se aumenta un digito al numero
     public void masUno(int num) {
-        Log.e(TAG, "masUno: " + numberString);
         if (numberString.length() > 2) {
             return;
         }
         numberString = numberString + num;
         numberInteger = Integer.parseInt(numberString);
         Log.e(TAG, "masUno: " + numberInteger);
-        if (numberInteger <= limit && numberInteger > 0) {
+        Log.e(TAG, "masUno: " + numberString);
+        Log.e(TAG, "masUno: " + numberString.length());
+        if (numberInteger == 0) {
+            numberString = "";
+        }
+        if (numberInteger > 0 && numberInteger <= limit ) {
             setTitleShow(numberInteger);
             placeholderHimno.setText("");
+        } else {
+            menosUno();
         }
     }
 

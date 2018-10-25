@@ -27,12 +27,9 @@ import java.util.HashSet;
  * create an instance of this fragment.
  */
 public class ContenidoFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String TAG = "ContenidoFragment";
     private static final String ARG_CATEGORY = "param1";
 
-    // TODO: Rename and change types of parameters
     private int mParam1;
 
 
@@ -46,7 +43,6 @@ public class ContenidoFragment extends Fragment {
      *
      * @return A new instance of fragment ContenidoFragment.
      */
-    // TODO: Rename and change types and number of parameters
     public static ContenidoFragment newInstance(int categoria) {
         ContenidoFragment fragment = new ContenidoFragment();
         Bundle args = new Bundle();

@@ -22,4 +22,9 @@
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="night_mode">Modo nocturno</string>
+    <string name="title_share">Compartir</string>
+    <string name="title_rate">Calificar</string>
+    <string name="privacy_policy">Politicas de Privacidad</string>
+    <string name="title_about">Acerca de...</string>
 </resources>

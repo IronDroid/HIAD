@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?attr/backgroundWindow"
     android:orientation="vertical">
 
     <android.support.v7.widget.Toolbar
@@ -52,7 +53,6 @@
                 android:padding="@dimen/activity_vertical_margin"
                 android:text="Letra del himno, \ntodo el himno"
                 android:textAlignment="center"
-                android:textColor="#111111"
                 android:textSize="20dp" />
         </ScrollView>
 

@@ -18,23 +18,25 @@
     <item android:title="Sé social">
         <menu>
             <item
+                android:id="@+id/nav_mode"
+                android:title="@string/night_mode"
+                app:actionLayout="@layout/action_view_switch" />
+            <item
                 android:id="@+id/nav_version"
                 android:title="@string/version_himno"
                 app:actionLayout="@layout/action_view_switch" />
-            <!--<item-->
-                <!--android:id="@+id/nav_mode"-->
-                <!--android:title="Modo nocturno"-->
-                <!--app:actionLayout="@layout/action_view_switch" />-->
             <item
                 android:id="@+id/nav_share"
-                android:title="Compartir" />
+                android:title="@string/title_share" />
             <item
-
                 android:id="@+id/nav_rate"
-                android:title="Calificar" />
+                android:title="@string/title_rate" />
+            <item
+                android:id="@+id/nav_privacy"
+                android:title="@string/privacy_policy" />
             <item
                 android:id="@+id/nav_about"
-                android:title="Acerca de..." />
+                android:title="@string/title_about" />
         </menu>
     </item>
 </menu>

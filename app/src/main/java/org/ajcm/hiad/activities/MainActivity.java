@@ -21,6 +21,7 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -89,6 +90,7 @@ public class MainActivity extends AppCompatActivity implements
     private DBAdapter dbAdapter;
 
     private Himno2008 himno;
+    private Himno1962 himno1962;
     private boolean version2008 = true;
 
     private boolean toastClose;
@@ -113,6 +115,7 @@ public class MainActivity extends AppCompatActivity implements
     private TextView musicDuration;
     private TextView musicProcent;
     private TextView titleDownload;
+    private TextView textVersionApp;
     private ProgressBar musicProgress;
 
     private StorageReference reference;
@@ -140,18 +143,6 @@ public class MainActivity extends AppCompatActivity implements
         initFirebaseStorage();
 
 //        actionNotification();
-
-
-        // TODO: 16-03-18 modo nocturno
-//        menuItem = menu.findItem(R.id.nav_mode);
-//        actionView = MenuItemCompat.getActionView(menuItem);
-//        switcher = (SwitchCompat) actionView.findViewById(R.id.switcher);
-//        switcher.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Toast.makeText(MainActivity.this, "mode click " + ((SwitchCompat) view).isChecked(), Toast.LENGTH_SHORT).show();
-//            }
-//        });
     }
 
     private void initFirebaseStorage() {
@@ -298,6 +289,9 @@ public class MainActivity extends AppCompatActivity implements
         // TODO: 16-03-18 navigation version
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        View headerView = navigationView.getHeaderView(0);
+        textVersionApp = headerView.findViewById(R.id.text_version_app);
+        textVersionApp.setText("v" + BuildConfig.VERSION_NAME);
         Menu menu = navigationView.getMenu();
         MenuItem menuItem = menu.findItem(R.id.nav_version);
         View actionView = MenuItemCompat.getActionView(menuItem);
@@ -321,6 +315,25 @@ public class MainActivity extends AppCompatActivity implements
                     userInteraction = false;
                     Log.e(TAG, "onCheckedChanged: " + version2008);
                 }
+                Log.e(TAG, "onCheckedChanged: " + userInteraction);
+            }
+        });
+
+        // TODO: 16-03-18 modo nocturno
+        menuItem = menu.findItem(R.id.nav_mode);
+        actionView = MenuItemCompat.getActionView(menuItem);
+        switcher = (SwitchCompat) actionView.findViewById(R.id.switcher);
+        switcher.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(MainActivity.this, "mode click " + ((SwitchCompat) view).isChecked(), Toast.LENGTH_SHORT).show();
+                boolean checked = ((SwitchCompat) view).isChecked();
+                if (checked) {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                } else {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                }
+                recreate();
             }
         });
     }
@@ -387,11 +400,15 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        // TODO: 05-04-18 data saved
-        Log.e(TAG, "onSaveInstanceState: se guarda version " + version2008);
         outState.putBoolean(VERSION_HIMNOS, version2008);
-        if (himno != null) {
-            outState.putInt(NUMERO, himno.getNumero());
+        if (version2008) {
+            if (himno != null) {
+                outState.putInt(NUMERO, himno.getNumero());
+            }
+        } else {
+            if (himno1962 != null) {
+                outState.putInt(NUMERO, himno1962.getNumero());
+            }
         }
         if (listenService != null) {
             outState.putBoolean("is_playing", listenService.isPlaying());
@@ -482,7 +499,6 @@ public class MainActivity extends AppCompatActivity implements
 
             @Override
             public void onPanelCollapsed(View panel) {
-                // TODO: 15-05-18 clean number
                 listenService.stopMedia();
                 firstPlay = false;
                 favoriteButton.setFavorite(false);
@@ -561,7 +577,6 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void durationMedia(int duration) {
         seekBar.setMax(duration / 100);
-        // TODO: 28-05-18 guardar la duracion en el modelo himno
         if (himno.getDuracion().equalsIgnoreCase("--:--")) {
             String labelDuration = getDate(duration);
             dbAdapter.setDuration(himno.getNumero(), labelDuration, version2008);
@@ -584,8 +599,6 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onStop() {
         super.onStop();
-        Log.e(TAG, "onStop: " + listenService.isPlaying());
-//            stopService(intentService);
         unbindService(mConnection);
     }
 
@@ -741,15 +754,22 @@ public class MainActivity extends AppCompatActivity implements
                 SwitchCompat switcher = actionView.findViewById(R.id.switcher);
                 userInteraction = true;
                 switcher.performClick();
-                // TODO: 14-07-17 agrupar estas funciones
                 break;
 
-//            case R.id.nav_mode:
-//                switcher.performClick();
-//                break;
+            case R.id.nav_mode:
+                SwitchCompat switcher2 = actionView.findViewById(R.id.switcher);
+                switcher2.performClick();
+                break;
 
             case R.id.nav_rate:
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + APP_PNAME)));
+                break;
+
+            case R.id.nav_privacy:
+                String url = "https://jhonlimaster.wixsite.com/hiad";
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                startActivity(i);
                 break;
 
             case R.id.nav_share:
@@ -825,7 +845,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void openUpPanelOld(Himno him) {
-        Himno1962 himno1962 = (Himno1962) him;
+        himno1962 = (Himno1962) him;
         findViewById(R.id.scroll_himno).scrollTo(0, 0);
         String titleShow = himno1962.getNumero() + ". " + himno1962.getTitulo();
         toolbarTitle.setText(titleShow);

@@ -6,8 +6,8 @@ android {
         applicationId "org.ajcm.hiad"
         minSdkVersion 14
         targetSdkVersion 27
-        versionCode 21
-        versionName "1.9.1"
+        versionCode 24
+        versionName "1.9.4"
     }
     buildTypes {
         release {
