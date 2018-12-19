@@ -50,6 +50,7 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import org.ajcm.hiad.BuildConfig;
 import org.ajcm.hiad.CallbackFragments;
+import org.ajcm.hiad.HiadApplication;
 import org.ajcm.hiad.R;
 import org.ajcm.hiad.dataset.DBAdapter;
 import org.ajcm.hiad.fragments.ContenidoMainFragment;
@@ -61,6 +62,7 @@ import org.ajcm.hiad.models.Himno2008;
 import org.ajcm.hiad.services.MediaListenService;
 import org.ajcm.hiad.utils.ConnectionUtils;
 import org.ajcm.hiad.utils.FileUtils;
+import org.ajcm.hiad.utils.UserPreferences;
 import org.ajcm.hiad.views.ZoomTextView;
 
 import java.io.File;
@@ -146,7 +148,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void initFirebaseStorage() {
-        String urlFirebase = "gs://tu-himnario-adventista.appspot.com";
+        String urlFirebase = getResources().getString(R.string.url_firebase);
         FirebaseStorage storage = FirebaseStorage.getInstance();
         reference = storage.getReferenceFromUrl(urlFirebase);
     }
@@ -322,12 +324,16 @@ public class MainActivity extends AppCompatActivity implements
         // TODO: 16-03-18 modo nocturno
         menuItem = menu.findItem(R.id.nav_mode);
         actionView = MenuItemCompat.getActionView(menuItem);
-        switcher = (SwitchCompat) actionView.findViewById(R.id.switcher);
+        switcher = actionView.findViewById(R.id.switcher);
+        UserPreferences preferences = new UserPreferences(this);
+        switcher.setChecked(preferences.getBoolean(HiadApplication.NIGHT_MODE));
         switcher.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Toast.makeText(MainActivity.this, "mode click " + ((SwitchCompat) view).isChecked(), Toast.LENGTH_SHORT).show();
                 boolean checked = ((SwitchCompat) view).isChecked();
+                UserPreferences preferences = new UserPreferences(getApplicationContext());
+                preferences.putBoolean(HiadApplication.NIGHT_MODE, checked);
                 if (checked) {
                     AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
                 } else {
@@ -489,6 +495,16 @@ public class MainActivity extends AppCompatActivity implements
 
     // configuracion inicial del panelUp
     private void setupUpPanel() {
+        Toolbar toolbar = findViewById(R.id.toolbar_panel);
+        toolbar.inflateMenu(R.menu.menu_himno);
+        MenuItem item = toolbar.getMenu().findItem(R.id.action_partiture);
+        item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem menuItem) {
+                startActivity(new Intent(MainActivity.this, PartitureActivity.class));
+                return true;
+            }
+        });
         toolbarTitle = findViewById(R.id.toolbar_title);
         upPanelLayout = findViewById(R.id.sliding_layout);
         upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);

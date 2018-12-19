@@ -27,4 +27,6 @@
     <string name="title_rate">Calificar</string>
     <string name="privacy_policy">Politicas de Privacidad</string>
     <string name="title_about">Acerca de...</string>
+    <string name="show_partiture">Partitura</string>
+    <string name="url_firebase">gs://tu-himnario-adventista.appspot.com</string>
 </resources>

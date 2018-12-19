@@ -17,6 +17,7 @@
         <activity android:name=".activities.MainActivity">
             <intent-filter>
                 <action android:name="OPEN_ACTION" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
@@ -37,8 +38,7 @@
             android:enabled="true" />
 
         <activity android:name=".activities.WelcomeActivity" />
-        <activity android:name=".activities.ContenidoActivity"></activity>
-
+        <activity android:name=".activities.ContenidoActivity" />
 
         <service android:name=".MyFirebaseMessagingService">
             <intent-filter>
@@ -54,6 +54,8 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_music_note_black_36dp" />
+
+        <activity android:name=".activities.PartitureActivity"></activity>
     </application>
 
 </manifest>

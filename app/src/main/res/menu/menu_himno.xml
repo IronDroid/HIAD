@@ -1,13 +1,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/action_play"
-        android:icon="@drawable/ic_play_arrow_white_24dp"
-        android:title="@string/play_string"
-        app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/action_download"
-        android:icon="@drawable/ic_file_download_white_24dp"
-        android:title="@string/download_string"
+        android:id="@+id/action_partiture"
+        android:icon="@drawable/ic_music_white_24dp"
+        android:title="@string/show_partiture"
         app:showAsAction="ifRoom" />
 </menu>

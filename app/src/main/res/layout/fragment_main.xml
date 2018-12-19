@@ -28,7 +28,6 @@
             android:paddingRight="56dp"
             android:singleLine="true"
             android:text="@string/placeholder_himno"
-            android:textColor="?attr/myColor"
             android:textSize="20sp" />
 
         <ImageButton
