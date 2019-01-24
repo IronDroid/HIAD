@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="72dp"
-    android:background="?selectableItemBackground"
+    android:background="?attr/backgroundWindow"
     android:clickable="true"
     android:orientation="horizontal">
 
@@ -16,11 +16,11 @@
         android:textAppearance="?android:textAppearanceLarge" />
 
     <LinearLayout
-        android:layout_weight="1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:layout_marginRight="@dimen/activity_vertical_margin"
+        android:layout_weight="1"
         android:orientation="vertical">
 
         <TextView
@@ -29,8 +29,7 @@
             android:layout_height="wrap_content"
             android:singleLine="true"
             android:text="Al cizxzxelo ire!, por si esto es bien largo como para que se pase"
-            android:textAppearance="?android:textAppearanceMedium"
-            android:textColor="#050505" />
+            android:textAppearance="?android:textAppearanceMedium" />
 
         <TextView
             android:id="@+id/music_size"
@@ -40,9 +39,9 @@
             android:textAppearance="?android:textAppearanceMedium" />
 
         <LinearLayout
-            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
             <ProgressBar
                 android:id="@+id/music_progress"
@@ -51,26 +50,26 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_weight="1"
-                android:visibility="gone"
-                android:max="100" />
+                android:max="100"
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/music_procent"
                 android:layout_width="50dp"
-                android:visibility="gone"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:textAppearance="?android:textAppearanceMedium" />
+                android:textAppearance="?android:textAppearanceMedium"
+                android:visibility="gone" />
         </LinearLayout>
     </LinearLayout>
 
     <ImageButton
         android:id="@+id/ic_action_music"
-        android:padding="@dimen/activity_vertical_margin"
-        android:layout_gravity="center"
-        android:tint="@android:color/black"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_delete_black_24dp"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:padding="@dimen/activity_vertical_margin"
+        android:src="@drawable/ic_delete_black_24dp"
+        android:tint="?attr/myColor" />
 </LinearLayout>

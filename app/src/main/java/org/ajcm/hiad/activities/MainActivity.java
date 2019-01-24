@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements
     private static final String APP_PNAME = "org.ajcm.hiad";
     private static final String TOOLBAR_PANEL_TITLE = "toolbar_panel_title";
     private static final String NUM_STRING = "num_string";
-    private static final String NUMERO = "numero";
+    public static final String NUMERO = "numero";
     private static final String VERSION_HIMNOS = "version";
     private static final String TEXT_HIMNO = "text_himno";
     private static final int REQUEST_SEARCH_HIMNO = 777;
@@ -298,9 +298,12 @@ public class MainActivity extends AppCompatActivity implements
         MenuItem menuItem = menu.findItem(R.id.nav_version);
         View actionView = MenuItemCompat.getActionView(menuItem);
         SwitchCompat switcher = actionView.findViewById(R.id.switcher);
-        switcher.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        switcher.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
+            public void onClick(View view) {
+                boolean checked = ((SwitchCompat) view).isChecked();
+                Toolbar toolbarPanel = findViewById(R.id.toolbar_panel);
+                MenuItem item = toolbarPanel.getMenu().findItem(R.id.action_partiture);
                 if (!checked) {
                     version2008 = true;
                     favoriteButton.setVisibility(View.VISIBLE);
@@ -312,12 +315,9 @@ public class MainActivity extends AppCompatActivity implements
                     params.putString("Action", "Version_Antiguo");
 //                    analytics.logEvent("Change_version", params);
                 }
-                if (userInteraction) {
-                    setMainFragment();
-                    userInteraction = false;
-                    Log.e(TAG, "onCheckedChanged: " + version2008);
-                }
-                Log.e(TAG, "onCheckedChanged: " + userInteraction);
+                upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+                item.setVisible(version2008);
+                setMainFragment();
             }
         });
 
@@ -330,7 +330,7 @@ public class MainActivity extends AppCompatActivity implements
         switcher.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(MainActivity.this, "mode click " + ((SwitchCompat) view).isChecked(), Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "onClick: switcher nocturno");
                 boolean checked = ((SwitchCompat) view).isChecked();
                 UserPreferences preferences = new UserPreferences(getApplicationContext());
                 preferences.putBoolean(HiadApplication.NIGHT_MODE, checked);
@@ -501,7 +501,8 @@ public class MainActivity extends AppCompatActivity implements
         item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
-                startActivity(new Intent(MainActivity.this, PartitureActivity.class));
+                startActivity(new Intent(MainActivity.this, PartitureActivity.class)
+                .putExtra(NUMERO, himno.getNumero()));
                 return true;
             }
         });
@@ -770,6 +771,7 @@ public class MainActivity extends AppCompatActivity implements
                 SwitchCompat switcher = actionView.findViewById(R.id.switcher);
                 userInteraction = true;
                 switcher.performClick();
+                upPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
                 break;
 
             case R.id.nav_mode:
