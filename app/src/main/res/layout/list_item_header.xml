@@ -10,6 +10,5 @@
         android:id="@+id/headerTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="@dimen/activity_vertical_margin"
-         />
+        android:padding="@dimen/activity_vertical_margin" />
 </LinearLayout>

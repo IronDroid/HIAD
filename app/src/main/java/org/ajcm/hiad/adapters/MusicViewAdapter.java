@@ -1,9 +1,9 @@
 package org.ajcm.hiad.adapters;
 
 import android.content.Context;
-import android.content.Intent;
-import android.support.v4.app.FragmentActivity;
-import android.support.v7.widget.RecyclerView;
+
+import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,18 +16,12 @@ import com.google.firebase.storage.FirebaseStorage;
 
 import org.ajcm.hiad.CallbackFragments;
 import org.ajcm.hiad.R;
-import org.ajcm.hiad.activities.MainActivity;
-import org.ajcm.hiad.activities.MusicActivity;
-import org.ajcm.hiad.fragments.MainFragment;
 import org.ajcm.hiad.fragments.MusicFragment;
-import org.ajcm.hiad.models.Himno;
 import org.ajcm.hiad.models.Himno2008;
 import org.ajcm.hiad.utils.FileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
-
-import static android.app.Activity.RESULT_OK;
 
 /**
  * Created by jhonlimaster on 21-07-16.

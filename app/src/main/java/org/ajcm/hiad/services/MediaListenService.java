@@ -1,24 +1,36 @@
 package org.ajcm.hiad.services;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.os.SystemClock;
+
+import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 import android.util.Log;
 
+import org.ajcm.hiad.R;
+import org.ajcm.hiad.activities.MainActivity;
 import org.ajcm.hiad.utils.FileUtils;
 
 import java.io.IOException;
 
 public class MediaListenService extends Service implements AudioManager.OnAudioFocusChangeListener {
+
     private static final String TAG = "MediaListenService";
+    public static final String CHANNEL_ID = "MusicServiceChannel";
+
     private MediaPlayer mediaPlayer;
     private final IBinder mBinder = new LocalBinder();
 
@@ -46,10 +58,11 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
             }
         };
 
+
         return START_NOT_STICKY;
     }
 
-    private void initStream(int numero) {
+    private void initStream(int numero, String titulo) {
         String himnoPath = FileUtils.getDirHimnos(getApplicationContext()).getAbsoluteFile() + "/" + FileUtils.getStringNumber(numero) + ".ogg";
 
         mediaPlayer.setOnErrorListener(errListener);
@@ -63,9 +76,36 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
             mediaPlayer.prepare();
             mediaPlayer.start();
             callbacks.durationMedia(mediaPlayer.getDuration());
+
+            startForegroundService(numero, titulo);
+
         } catch (IllegalArgumentException | IllegalStateException | IOException e) {
             Log.e(TAG, "setDataSource IllegalArgumentException");
         }
+    }
+
+    private void startForegroundService(int numero, String titulo) {
+        createNotificationChannel();
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        notificationIntent.setAction(Intent.ACTION_SCREEN_ON);
+        notificationIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        notificationIntent.putExtra("number", numero);
+        notificationIntent.putExtra("duration", mediaPlayer.getDuration());
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                notificationIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Reproduciendo música")
+                .setContentText("Himno " + numero + ": " + titulo)
+                .setSmallIcon(R.drawable.ic_music_note_black_36dp)
+                .setContentIntent(pendingIntent)
+                .setDefaults(0)
+                .build();
+
+        startForeground(1, notification);
     }
 
     @Override
@@ -95,7 +135,11 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
         @Override
         public void onPrepared(MediaPlayer mediaPlayer) {
             Log.e(TAG, "onPrepared: ");
-            runnable.run();
+            try {
+                runnable.run();
+            } catch (Exception ex) {
+                Log.e(TAG, "onPrepared: ", ex);
+            }
         }
     };
 
@@ -104,6 +148,7 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
         public void onCompletion(MediaPlayer mediaPlayer) {
             Log.e(TAG, "onCompletion: ");
             callbacks.completion();
+            stopForeground(true);
         }
     };
 
@@ -118,6 +163,7 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
                 // Lost focus for an unbounded amount of time: stop playback and release media player
                 Log.e(TAG, "onAudioFocusChange: Lost");
                 callbacks.completion();
+                stopForeground(true);
                 handler.removeCallbacks(runnable);
                 mediaPlayer.reset();
                 break;
@@ -157,9 +203,9 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
         this.callbacks = (MediaServiceCallbacks) activity;
     }
 
-    public void playMedia(int numero) {
+    public void playMedia(int numero, String titulo) {
         Log.e(TAG, "playMedia: ");
-        initStream(numero);
+        initStream(numero, titulo);
         audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN);
     }
@@ -169,6 +215,7 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
         mediaPlayer.stop();
         handler.removeCallbacks(runnable);
         audioManager.abandonAudioFocus(this);
+        stopForeground(true);
 
     }
 
@@ -199,6 +246,20 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
     public class LocalBinder extends Binder {
         public MediaListenService getServiceInstance() {
             return MediaListenService.this;
+        }
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel serviceChannel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Music Foreground Service Channel",
+                    NotificationManager.IMPORTANCE_LOW
+            );
+            serviceChannel.setSound(null,null);
+
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(serviceChannel);
         }
     }
 }

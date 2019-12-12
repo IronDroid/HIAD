@@ -2,10 +2,10 @@ package org.ajcm.hiad.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.util.Pair;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.core.util.Pair;
 
 import org.ajcm.hiad.dataset.DBAdapter;
 import org.ajcm.hiad.fragments.ContenidoFragment;

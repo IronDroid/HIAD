@@ -4,10 +4,10 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.SearchView;
-import android.support.v7.widget.Toolbar;
+import androidx.core.view.MenuItemCompat;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -95,7 +95,7 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
         searchView.setSubmitButtonEnabled(false);
         searchView.setQueryHint("Título del himno");
         searchView.requestFocus();
-        ((EditText)searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text))
+        ((EditText)searchView.findViewById(androidx.appcompat.R.id.search_src_text))
                 .setHintTextColor(getResources().getColor(R.color.whiteHintText));
         return super.onCreateOptionsMenu(menu);
     }

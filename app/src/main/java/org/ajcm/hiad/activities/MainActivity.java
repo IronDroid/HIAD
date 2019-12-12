@@ -12,23 +12,23 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.annotation.NonNull;
-import android.support.design.widget.NavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.AppCompatDelegate;
-import android.support.v7.widget.SwitchCompat;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.NonNull;
+import com.google.android.material.navigation.NavigationView;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.core.view.GravityCompat;
+import androidx.core.view.MenuItemCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.SwitchCompat;
+import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -109,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements
     private LinearLayout layoutDownload;
     private LinearLayout layoutPlay;
     private SeekBar seekBar;
+    private Toolbar toolbarPanel;
     private ImageButton buttonPlay;
     private ImageButton buttonDownload;
     private ImageButton buttonCancel;
@@ -136,6 +137,23 @@ public class MainActivity extends AppCompatActivity implements
         setupUpPanel();
 
         dbAdapter = new DBAdapter(getApplicationContext());
+
+        Log.e(TAG, "onCreate: extras " + getIntent().getAction());
+
+        if (getIntent().getAction() != null && getIntent().getAction().equalsIgnoreCase(Intent.ACTION_SCREEN_ON)) {
+            version2008 = true;
+            MenuItem item = toolbarPanel.getMenu().findItem(R.id.action_partiture);
+            item.setVisible(version2008);
+            int numberHimno = getIntent().getIntExtra("number", 0);
+            if (numberHimno > 0) {
+                Himno himno = dbAdapter.getHimno(numberHimno, version2008);
+                favoriteButton.setVisibility(View.VISIBLE);
+                openUpPanel(himno);
+            }
+            seekBar.setMax(getIntent().getExtras().getInt("duration") / 100);
+            firstPlay = true;
+            buttonPlay.setImageResource(R.drawable.ic_pause_circle_filled_black_36dp);
+        }
         restoreDataSaved(savedInstanceState);
 
         onListeners();
@@ -145,6 +163,7 @@ public class MainActivity extends AppCompatActivity implements
         initFirebaseStorage();
 
 //        actionNotification();
+
     }
 
     private void initFirebaseStorage() {
@@ -282,7 +301,7 @@ public class MainActivity extends AppCompatActivity implements
                     }
                 } else {
                     firstPlay = true;
-                    listenService.playMedia(himno.getNumero());
+                    listenService.playMedia(himno.getNumero(), himno.getTitulo());
                     buttonPlay.setImageResource(R.drawable.ic_pause_circle_filled_black_36dp);
                 }
             }
@@ -302,7 +321,8 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onClick(View view) {
                 boolean checked = ((SwitchCompat) view).isChecked();
-                Toolbar toolbarPanel = findViewById(R.id.toolbar_panel);
+                toolbarPanel = findViewById(R.id.toolbar_panel);
+
                 MenuItem item = toolbarPanel.getMenu().findItem(R.id.action_partiture);
                 if (!checked) {
                     version2008 = true;
@@ -382,12 +402,16 @@ public class MainActivity extends AppCompatActivity implements
         if (savedInstanceState != null) {
             version2008 = savedInstanceState.getBoolean(VERSION_HIMNOS);
             Log.e(TAG, "restoreDataSaved: " + version2008);
+            MenuItem item = toolbarPanel.getMenu().findItem(R.id.action_partiture);
+            item.setVisible(version2008);
             int numberHimno = savedInstanceState.getInt(NUMERO, 0);
             if (numberHimno > 0) {
                 Himno himno = dbAdapter.getHimno(numberHimno, version2008);
                 if (version2008) {
+                    favoriteButton.setVisibility(View.VISIBLE);
                     openUpPanel(himno);
                 } else {
+                    favoriteButton.setVisibility(View.GONE);
                     openUpPanelOld(himno);
                 }
             }
@@ -417,7 +441,11 @@ public class MainActivity extends AppCompatActivity implements
             }
         }
         if (listenService != null) {
-            outState.putBoolean("is_playing", listenService.isPlaying());
+            try {
+                outState.putBoolean("is_playing", listenService.isPlaying());
+            } catch (IllegalStateException ise) {
+                Log.e(TAG, "onSaveInstanceState: ", ise);
+            }
         }
         outState.putInt("seek_max", seekBar.getMax());
         outState.putBoolean("first_play", firstPlay);
@@ -495,14 +523,20 @@ public class MainActivity extends AppCompatActivity implements
 
     // configuracion inicial del panelUp
     private void setupUpPanel() {
-        Toolbar toolbar = findViewById(R.id.toolbar_panel);
-        toolbar.inflateMenu(R.menu.menu_himno);
-        MenuItem item = toolbar.getMenu().findItem(R.id.action_partiture);
+        toolbarPanel = findViewById(R.id.toolbar_panel);
+        toolbarPanel.inflateMenu(R.menu.menu_himno);
+        MenuItem item = toolbarPanel.getMenu().findItem(R.id.action_partiture);
+        item.setVisible(version2008);
+
         item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
-                startActivity(new Intent(MainActivity.this, PartitureActivity.class)
-                .putExtra(NUMERO, himno.getNumero()));
+                if (ConnectionUtils.hasInternet(getApplicationContext())) {
+                    startActivity(new Intent(MainActivity.this, PartitureActivity.class)
+                            .putExtra(NUMERO, himno.getNumero()));
+                } else {
+                    Toast.makeText(getApplicationContext(), R.string.no_internet, Toast.LENGTH_SHORT).show();
+                }
                 return true;
             }
         });
@@ -767,6 +801,7 @@ public class MainActivity extends AppCompatActivity implements
                     Toast.makeText(this, "No Disponible en la version antigua del himnario", Toast.LENGTH_SHORT).show();
                 }
                 break;
+
             case R.id.nav_version:
                 SwitchCompat switcher = actionView.findViewById(R.id.switcher);
                 userInteraction = true;

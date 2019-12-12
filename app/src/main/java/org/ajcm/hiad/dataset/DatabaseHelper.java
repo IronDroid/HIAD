@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Build;
 import android.util.Log;
 
 import org.ajcm.hiad.utils.UserPreferences;
@@ -58,7 +59,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private void copydatabase(Context context) throws IOException {
         try {
-            getReadableDatabase();
+            SQLiteDatabase readableDatabase = getReadableDatabase();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                readableDatabase.close();
+            }
         } catch (Exception ignored) {
         }
         InputStream input = context.getAssets().open("hiad2.db");

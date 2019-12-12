@@ -2,7 +2,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_partiture"
-        android:icon="@drawable/ic_music_white_24dp"
+        android:icon="@drawable/ic_queue_music_white_24dp"
         android:title="@string/show_partiture"
         app:showAsAction="ifRoom" />
 </menu>

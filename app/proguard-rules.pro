@@ -91,3 +91,7 @@
 ##-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 ##   public *;
 ##}
+
+-dontwarn com.sothree.**
+-keep class com.sothree.**
+-keep interface com.sothree.**

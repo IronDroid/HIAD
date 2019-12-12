@@ -1,8 +1,8 @@
 package org.ajcm.hiad;
 
 import android.app.Application;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatDelegate;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatDelegate;
 import android.util.Log;
 
 import com.google.android.gms.ads.MobileAds;
@@ -37,8 +37,6 @@ public class HiadApplication extends Application {
 
         UserPreferences preferences = new UserPreferences(this);
         this.isNightModeEnabled = preferences.getBoolean(NIGHT_MODE);
-        Log.e(TAG, "onCreate: " + AppCompatDelegate.getDefaultNightMode());
-        Log.e(TAG, "onCreate: " + this.isNightModeEnabled);
         if (this.isNightModeEnabled){
             AppCompatDelegate.setDefaultNightMode(
                     AppCompatDelegate.MODE_NIGHT_YES);

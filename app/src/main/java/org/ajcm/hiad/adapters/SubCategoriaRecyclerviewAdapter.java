@@ -1,7 +1,6 @@
 package org.ajcm.hiad.adapters;
 
-import android.content.Intent;
-import android.support.v4.app.FragmentActivity;
+import androidx.fragment.app.FragmentActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,13 +12,10 @@ import org.ajcm.hiad.CallbackFragments;
 import org.ajcm.hiad.R;
 import org.ajcm.hiad.fragments.ContenidoFragment;
 import org.ajcm.hiad.fragments.ContenidoMainFragment;
-import org.ajcm.hiad.fragments.MainFragment;
 import org.ajcm.hiad.models.Himno2008;
 import org.zakariya.stickyheaders.SectioningAdapter;
 
 import java.util.ArrayList;
-
-import static android.app.Activity.RESULT_OK;
 
 /**
  * Created by jhonlimaster on 03-10-17.
