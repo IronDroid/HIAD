@@ -12,19 +12,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import androidx.annotation.NonNull;
-import com.google.android.material.navigation.NavigationView;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.core.view.GravityCompat;
-import androidx.core.view.MenuItemCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
-import androidx.appcompat.widget.SwitchCompat;
-import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,11 +23,24 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.SwitchCompat;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.core.view.MenuItemCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+
 import com.github.ivbaranov.mfb.MaterialFavoriteButton;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
@@ -86,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements
     public static final String NUMERO = "numero";
     private static final String VERSION_HIMNOS = "version";
     private static final String TEXT_HIMNO = "text_himno";
+    private static final String DOWNLOAD_MUSIC_ACTION = "download_music_action";
     private static final int REQUEST_SEARCH_HIMNO = 777;
 
     private AdView adView;
@@ -136,6 +137,7 @@ public class MainActivity extends AppCompatActivity implements
 
         setupUpPanel();
 
+        analytics = FirebaseAnalytics.getInstance(getApplicationContext());
         dbAdapter = new DBAdapter(getApplicationContext());
 
         Log.e(TAG, "onCreate: extras " + getIntent().getAction());
@@ -154,14 +156,11 @@ public class MainActivity extends AppCompatActivity implements
             firstPlay = true;
             buttonPlay.setImageResource(R.drawable.ic_pause_circle_filled_black_36dp);
         }
+
         restoreDataSaved(savedInstanceState);
-
         onListeners();
-
         initMediaListener();
-
         initFirebaseStorage();
-
 //        actionNotification();
 
     }
@@ -322,6 +321,7 @@ public class MainActivity extends AppCompatActivity implements
             public void onClick(View view) {
                 boolean checked = ((SwitchCompat) view).isChecked();
                 toolbarPanel = findViewById(R.id.toolbar_panel);
+
 
                 MenuItem item = toolbarPanel.getMenu().findItem(R.id.action_partiture);
                 if (!checked) {
@@ -706,7 +706,7 @@ public class MainActivity extends AppCompatActivity implements
 
     // descarga de la musica del himno
     private void downloadMusic(int numberInt) {
-        String number = FileUtils.getStringNumber(numberInt);
+        final String number = FileUtils.getStringNumber(numberInt);
         File dirHimnos = new File(getFilesDir().getAbsolutePath() + "/himnos/");
         dirHimnos.mkdirs();
         StorageReference himnoRef = reference.child("himnos/" + number + ".ogg");
@@ -740,6 +740,12 @@ public class MainActivity extends AppCompatActivity implements
                     musicProcent.setText("");
                     seekBar.setProgress(0);
                     musicTime.setText("00:00");
+
+                    // Analytics
+                    Bundle bundle = new Bundle();
+                    bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, number);
+                    bundle.putString(FirebaseAnalytics.Param.ITEM_ID, DOWNLOAD_MUSIC_ACTION);
+                    analytics.logEvent(FirebaseAnalytics.Event.SHARE, bundle);
                     musicDuration.setText(himno.getDuracion());
                 }
             }).addOnFailureListener(new OnFailureListener() {

@@ -15,10 +15,9 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
-import androidx.core.content.ContextCompat;
-import android.util.Log;
 
 import org.ajcm.hiad.R;
 import org.ajcm.hiad.activities.MainActivity;
@@ -58,8 +57,7 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
             }
         };
 
-
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
 
     private void initStream(int numero, String titulo) {
@@ -256,7 +254,7 @@ public class MediaListenService extends Service implements AudioManager.OnAudioF
                     "Music Foreground Service Channel",
                     NotificationManager.IMPORTANCE_LOW
             );
-            serviceChannel.setSound(null,null);
+            serviceChannel.setSound(null, null);
 
             NotificationManager manager = getSystemService(NotificationManager.class);
             manager.createNotificationChannel(serviceChannel);

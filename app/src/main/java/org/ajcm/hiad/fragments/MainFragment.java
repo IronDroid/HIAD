@@ -2,16 +2,20 @@ package org.ajcm.hiad.fragments;
 
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
 
 import org.ajcm.hiad.CallbackFragments;
 import org.ajcm.hiad.R;
@@ -56,18 +60,14 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        Log.e(TAG, "onSaveInstanceState: " + numberInteger);
-        Log.e(TAG, "onSaveInstanceState: " + numberString);
         outState.putInt(KEY_NUMBER_INTEGER, numberInteger);
         outState.putString(KEY_NUMBER_STRING, numberString);
-        Log.e(TAG, "onSaveInstanceState: guardado");
     }
 
     public static MainFragment newInstance(boolean version2008) {
         MainFragment fragment = new MainFragment();
         Bundle args = new Bundle();
         args.putBoolean(KEY_VERSION, version2008);
-        Log.e(TAG, "newInstance: version: " + version2008);
         fragment.setArguments(args);
         return fragment;
     }
@@ -87,7 +87,6 @@ public class MainFragment extends Fragment implements View.OnClickListener {
             himno = new Himno1962();
             limit = OLD_LIMIT;
         }
-        Log.e(TAG, "onCreate: " + listHimnos.size());
         dbAdapter.close();
     }
 
@@ -104,8 +103,6 @@ public class MainFragment extends Fragment implements View.OnClickListener {
                 setTitleShow(numberInteger);
             }
         }
-        Log.e(TAG, "onCreateView: " + savedInstanceState);
-        Log.e(TAG, "onCreateView: " + numberInteger);
 
         String[] textos = getResources().getStringArray(R.array.textos_alabanza);
         int random = new Random().nextInt(textos.length);
@@ -165,9 +162,7 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     }
 
     public void okButton() {
-        Log.e(TAG, "okButton: " + numberInteger);
         if (numberInteger > 0) {
-            Log.e(TAG, "okButton: " + himno.getNumero());
             callbackFragments.callbackOK(MainFragment.class, himno);
             setPlaceholderHimno();
         }
@@ -180,13 +175,10 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         }
         numberString = numberString + num;
         numberInteger = Integer.parseInt(numberString);
-        Log.e(TAG, "masUno: " + numberInteger);
-        Log.e(TAG, "masUno: " + numberString);
-        Log.e(TAG, "masUno: " + numberString.length());
         if (numberInteger == 0) {
             numberString = "";
         }
-        if (numberInteger > 0 && numberInteger <= limit ) {
+        if (numberInteger > 0 && numberInteger <= limit) {
             setTitleShow(numberInteger);
             placeholderHimno.setText("");
         } else {
@@ -214,11 +206,28 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         numberString = "";
         numberTextView.setText("");
         placeholderHimno.setText(version2008 ? R.string.placeholder_himno : R.string.placeholder_himno_old);
+        TypedValue typedValue = new TypedValue();
+        Resources.Theme theme = getContext().getTheme();
+        theme.resolveAttribute(R.attr.myColor, typedValue, true);
+        @ColorInt int color = typedValue.data;
+        numberTextView.setTextColor(color);
     }
 
     private void setTitleShow(int numero) {
         if (numero > 0) {
             himno = listHimnos.get(numero - 1);
+            if (version2008) {
+                Himno2008 himnoX = (Himno2008) himno;
+                if (himnoX.isFavorito()) {
+                    numberTextView.setTextColor(getResources().getColor(R.color.colorAccent));
+                } else {
+                    TypedValue typedValue = new TypedValue();
+                    Resources.Theme theme = getContext().getTheme();
+                    theme.resolveAttribute(R.attr.myColor, typedValue, true);
+                    @ColorInt int color = typedValue.data;
+                    numberTextView.setTextColor(color);
+                }
+            }
             numberTextView.setText(himno.getNumero() + ". " + himno.getTitulo());
         } else {
             setPlaceholderHimno();
