@@ -165,6 +165,7 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         if (numberInteger > 0) {
             callbackFragments.callbackOK(MainFragment.class, himno);
             setPlaceholderHimno();
+            dbAdapter.setHistorial(himno.getNumero());
         }
     }
 

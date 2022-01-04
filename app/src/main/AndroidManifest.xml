@@ -56,11 +56,11 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_music_note_black_36dp" />
-
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="@string/ads_id"/>
-        <activity android:name=".activities.PartitureActivity"></activity>
+            android:value="@string/ads_id" />
+
+        <activity android:name=".activities.PartitureActivity" />
     </application>
 
 </manifest>

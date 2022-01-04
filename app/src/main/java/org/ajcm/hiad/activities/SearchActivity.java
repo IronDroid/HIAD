@@ -72,9 +72,9 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Log.e(TAG, "onItemClick: " + i);
                 setResult(RESULT_OK, new Intent().putExtra("numero", himnos.get(i).getNumero()));
                 finish();
+                dbAdapter.setHistorial(himnos.get(i).getNumero());
             }
         });
     }

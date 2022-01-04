@@ -23,6 +23,7 @@ public class WelcomeActivity extends AppCompatActivity {
     private ViewPager viewPager;
     private CirclePageIndicator circlePageIndicator;
     private Button buttonWelcome;
+    private Button buttonSkip;
     private ImageButton buttonNext;
     private int limitPage;
 
@@ -36,6 +37,7 @@ public class WelcomeActivity extends AppCompatActivity {
         circlePageIndicator.setViewPager(viewPager);
         viewPager.setPageTransformer(false, new WelcomePageTransformer());
         buttonWelcome = (Button) findViewById(R.id.button_welcome);
+        buttonSkip = (Button) findViewById(R.id.button_skip);
         buttonNext = (ImageButton) findViewById(R.id.button_next);
         limitPage = 3;
         buttonNext.setOnClickListener(new View.OnClickListener() {
@@ -45,6 +47,14 @@ public class WelcomeActivity extends AppCompatActivity {
             }
         });
         buttonWelcome.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(WelcomeActivity.this, MainActivity.class));
+                finish();
+                new UserPreferences(getApplicationContext()).putBoolean(KEY_WELCOME, true);
+            }
+        });
+        buttonSkip.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(WelcomeActivity.this, MainActivity.class));

@@ -24,7 +24,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String VERSION_DB_PREF = "version_db";
     private Context context;
     private static final String DATABASE_NAME = "himnario";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 5;
     private String pathDB;
     private UserPreferences preferences;
 

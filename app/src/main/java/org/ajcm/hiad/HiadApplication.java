@@ -1,9 +1,10 @@
 package org.ajcm.hiad;
 
 import android.app.Application;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatDelegate;
-import android.util.Log;
 
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -27,8 +28,7 @@ public class HiadApplication extends Application {
     public static final String NIGHT_MODE = "night_mode";
 
     static {
-        AppCompatDelegate.setDefaultNightMode(
-                AppCompatDelegate.MODE_NIGHT_AUTO);
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
     }
 
     @Override
@@ -37,17 +37,14 @@ public class HiadApplication extends Application {
 
         UserPreferences preferences = new UserPreferences(this);
         this.isNightModeEnabled = preferences.getBoolean(NIGHT_MODE);
-        if (this.isNightModeEnabled){
+        if (this.isNightModeEnabled) {
             AppCompatDelegate.setDefaultNightMode(
                     AppCompatDelegate.MODE_NIGHT_YES);
         }
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                migrateDB();
-                initAds();
-            }
+        new Thread(() -> {
+            migrateDB();
+            initAds();
         }).run();
     }
 

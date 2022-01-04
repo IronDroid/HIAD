@@ -55,6 +55,7 @@ import org.ajcm.hiad.R;
 import org.ajcm.hiad.dataset.DBAdapter;
 import org.ajcm.hiad.fragments.ContenidoMainFragment;
 import org.ajcm.hiad.fragments.DownloadFragment;
+import org.ajcm.hiad.fragments.HistoryFragment;
 import org.ajcm.hiad.fragments.MainFragment;
 import org.ajcm.hiad.models.Himno;
 import org.ajcm.hiad.models.Himno1962;
@@ -159,7 +160,11 @@ public class MainActivity extends AppCompatActivity implements
 
         restoreDataSaved(savedInstanceState);
         onListeners();
-        initMediaListener();
+        try {
+            initMediaListener();
+        } catch (Exception e) {
+            Log.e(TAG, "onCreate: ", e);
+        }
         initFirebaseStorage();
 //        actionNotification();
 
@@ -171,7 +176,7 @@ public class MainActivity extends AppCompatActivity implements
         reference = storage.getReferenceFromUrl(urlFirebase);
     }
 
-    private void initMediaListener() {
+    private void initMediaListener() throws Exception {
         intentService = new Intent(this, MediaListenService.class);
         if (!isServiceRunning()) {
             Log.e(TAG, "onCreate: create service");
@@ -803,6 +808,14 @@ public class MainActivity extends AppCompatActivity implements
                 if (this.version2008) {
                     fragmentClass = ContenidoMainFragment.class;
 //                    startActivityForResult(new Intent(MainActivity.this, ContenidoActivity.class), REQUEST_SEARCH_HIMNO);
+                } else {
+                    Toast.makeText(this, "No Disponible en la version antigua del himnario", Toast.LENGTH_SHORT).show();
+                }
+                break;
+
+            case R.id.nav_history:
+                if (this.version2008) {
+                    fragmentClass = HistoryFragment.class;
                 } else {
                     Toast.makeText(this, "No Disponible en la version antigua del himnario", Toast.LENGTH_SHORT).show();
                 }
